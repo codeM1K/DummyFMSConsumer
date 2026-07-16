@@ -376,15 +376,33 @@ public class RealmVehicleTree extends VerticalLayout implements DiscoveryListene
                 return;
             }
 
-            // Remove existing vehicle nodes for this realm
+            // Check if vehicle data actually changed
             List<TreeNode> existingVehicleNodes = realmVehicleNodes.get(realmId);
+            int existingCount = existingVehicleNodes != null ? existingVehicleNodes.size() : 0;
+            int newCount = vehicles != null ? vehicles.size() : 0;
+
+            if (existingCount == newCount && existingCount > 0) {
+                // Same count - check if IDs match
+                Set<String> existingIds = existingVehicleNodes.stream()
+                        .map(TreeNode::getId)
+                        .collect(Collectors.toSet());
+                Set<String> newIds = vehicles.stream()
+                        .map(Vehicle::getId)
+                        .collect(Collectors.toSet());
+                if (existingIds.equals(newIds)) {
+                    return; // No change, skip update to preserve expanded/selection state
+                }
+            } else if (existingCount == 0 && newCount == 0) {
+                return; // Both empty, nothing to do
+            }
+
+            // Data changed - update the tree
             if (existingVehicleNodes != null) {
                 for (TreeNode vehicleNode : existingVehicleNodes) {
                     treeData.removeItem(vehicleNode);
                 }
             }
 
-            // Add updated vehicle nodes
             List<TreeNode> newVehicleNodes = new ArrayList<>();
             if (vehicles != null) {
                 for (Vehicle vehicle : vehicles) {
