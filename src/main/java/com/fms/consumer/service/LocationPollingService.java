@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.Random;
 
 /**
  * Service that polls the Open Remote REST API for location data updates.
@@ -48,6 +49,12 @@ public class LocationPollingService {
     private volatile int consecutiveFastResponses = 0;
     private volatile long lastResponseTimeMs = 0;
     private volatile ScheduledFuture<?> pollTask;
+
+    // Random mode fields
+    private volatile boolean randomMode = false;
+    private final Random random = new Random();
+    private volatile int currentRandomClientCount = 5;
+    private volatile int lastRandomDelaySeconds = 2;
 
     private final Set<String> subscribedVehicleIds = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<String, String> vehicleClientMap = new ConcurrentHashMap<>();
@@ -226,6 +233,106 @@ public class LocationPollingService {
      */
     public boolean isAdaptiveThrottlingEnabled() {
         return adaptiveThrottlingEnabled;
+    }
+
+    /**
+     * Enables or disables random mode polling.
+     * When enabled: cancels the fixed scheduler and starts random scheduling (2-10s intervals with bursts).
+     * When disabled: cancels random scheduling and restarts the fixed scheduler.
+     *
+     * @param enabled true to enable random mode polling
+     */
+    public void setRandomMode(boolean enabled) {
+        this.randomMode = enabled;
+        if (enabled) {
+            // Cancel fixed scheduler, start random scheduling
+            if (pollTask != null) {
+                pollTask.cancel(false);
+                pollTask = null;
+            }
+            scheduleNextRandomPoll();
+        } else {
+            // Restore fixed interval scheduling
+            if (pollTask != null) {
+                pollTask.cancel(false);
+            }
+            pollTask = scheduler.scheduleAtFixedRate(this::pollLocationData, currentPollIntervalSeconds, currentPollIntervalSeconds, TimeUnit.SECONDS);
+        }
+        log.info("Random mode polling {}", enabled ? "enabled" : "disabled");
+    }
+
+    /**
+     * Returns whether random mode polling is currently enabled.
+     */
+    public boolean isRandomMode() {
+        return randomMode;
+    }
+
+    /**
+     * Returns the current random client count (number of simulated clients per poll cycle).
+     */
+    public int getCurrentRandomClientCount() {
+        return currentRandomClientCount;
+    }
+
+    /**
+     * Returns the last random delay in seconds used for scheduling.
+     */
+    public int getLastRandomDelaySeconds() {
+        return lastRandomDelaySeconds;
+    }
+
+    /**
+     * Schedules the next random poll with a randomized delay (2-10 seconds).
+     * Has a 20% chance of producing a burst (3 rapid polls in 1-second intervals).
+     */
+    private void scheduleNextRandomPoll() {
+        if (!active || !randomMode) return;
+
+        // Randomize next poll delay: 2-10 seconds
+        int nextDelay = 2 + random.nextInt(9); // 2 to 10 seconds
+        lastRandomDelaySeconds = nextDelay;
+
+        // Sometimes burst: 20% chance of a rapid burst (3 polls in 1 second intervals)
+        boolean burst = random.nextInt(5) == 0;
+
+        if (burst) {
+            log.debug("Random mode: scheduling burst (3 rapid polls)");
+            // Schedule 3 rapid polls
+            for (int i = 0; i < 3; i++) {
+                scheduler.schedule(this::executeRandomPoll, i, TimeUnit.SECONDS);
+            }
+            // Then schedule next random poll after the burst
+            scheduler.schedule(this::scheduleNextRandomPoll, 4, TimeUnit.SECONDS);
+        } else {
+            // Normal: schedule one poll then the next random interval
+            scheduler.schedule(() -> {
+                executeRandomPoll();
+                scheduleNextRandomPoll();
+            }, nextDelay, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * Executes a single random poll: randomizes the client count (5-100),
+     * performs the actual poll, and records simulated multi-client metrics.
+     */
+    private void executeRandomPoll() {
+        if (!active || !randomMode) return;
+
+        // Randomize client count: 5 to 100
+        currentRandomClientCount = 5 + random.nextInt(96); // 5 to 100
+
+        // Do the actual poll
+        pollLocationData();
+
+        // Record metrics for each simulated client beyond the first
+        for (int i = 2; i <= currentRandomClientCount; i++) {
+            String clientId = "client_" + i;
+            for (String vehicleId : subscribedVehicleIds) {
+                metricsCollector.recordLocationUpdate(vehicleId, clientId);
+            }
+        }
     }
 
     /**

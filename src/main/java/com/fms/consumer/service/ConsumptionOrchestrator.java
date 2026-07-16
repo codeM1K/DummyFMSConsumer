@@ -62,14 +62,13 @@ public class ConsumptionOrchestrator {
     }
 
     /**
-     * Starts Random Mode by selecting vehicles randomly from all available realms.
-     * For each selected vehicle and each simulated client, creates a session and
-     * establishes a WebSocket connection.
+     * Starts Random Mode by subscribing ALL vehicles from all available realms.
+     * Randomized polling frequency and client count are handled by LocationPollingService.
      * Each vehicle's connection is established independently; one vehicle's failure
      * does not affect others (Req 12.5).
      */
     public void startRandomMode() {
-        log.info("[{}] Starting Random Mode with {} client(s)", Instant.now(), clientCount);
+        log.info("[{}] Starting Random Mode (all vehicles, randomized polling)", Instant.now());
 
         List<Vehicle> allVehicles = getAllVehiclesFromRealms();
         if (allVehicles.isEmpty()) {
@@ -77,17 +76,16 @@ public class ConsumptionOrchestrator {
             return;
         }
 
-        // Randomly select a subset of vehicles
-        List<Vehicle> selectedVehicles = selectRandomVehicles(allVehicles);
-        log.info("[{}] Randomly selected {} vehicles out of {} available",
-                Instant.now(), selectedVehicles.size(), allVehicles.size());
+        log.info("[{}] Subscribing all {} vehicles for Random Mode", Instant.now(), allVehicles.size());
 
-        for (Vehicle vehicle : selectedVehicles) {
-            for (int clientIdx = 1; clientIdx <= clientCount; clientIdx++) {
-                String clientId = "client_" + clientIdx;
-                startSessionForVehicle(vehicle, clientId, ConsumptionMode.RANDOM);
-            }
+        for (Vehicle vehicle : allVehicles) {
+            String clientId = "client_1"; // Base client - random mode handles multi-client internally
+            startSessionForVehicle(vehicle, clientId, ConsumptionMode.RANDOM);
         }
+
+        // Enable random polling mode in the polling service
+        locationPollingService.setRandomMode(true);
+        locationPollingService.start();
 
         randomModeActive = true;
         currentMode = ConsumptionMode.RANDOM;
@@ -99,6 +97,9 @@ public class ConsumptionOrchestrator {
      */
     public void stopRandomMode() {
         log.info("[{}] Stopping Random Mode", Instant.now());
+
+        // Disable random polling mode
+        locationPollingService.setRandomMode(false);
 
         List<String> keysToRemove = activeSessions.entrySet().stream()
                 .filter(entry -> entry.getValue().getMode() == ConsumptionMode.RANDOM)
@@ -538,21 +539,6 @@ public class ConsumptionOrchestrator {
             }
         }
         return allVehicles;
-    }
-
-    /**
-     * Randomly selects a subset of vehicles from the given list.
-     * Selects between 1 and the total number of vehicles (inclusive).
-     */
-    private List<Vehicle> selectRandomVehicles(List<Vehicle> allVehicles) {
-        if (allVehicles.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        int count = ThreadLocalRandom.current().nextInt(1, allVehicles.size() + 1);
-        List<Vehicle> shuffled = new ArrayList<>(allVehicles);
-        Collections.shuffle(shuffled, ThreadLocalRandom.current());
-        return shuffled.subList(0, count);
     }
 
     /**

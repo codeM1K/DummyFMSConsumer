@@ -77,6 +77,7 @@ public class MainView extends VerticalLayout {
         consumptionControlPanel.setLocationPollingService(locationPollingService);
         multiClientConfigPanel.setOrchestrator(consumptionOrchestrator);
         metricsPanel.setMetricsCollector(metricsCollector);
+        metricsPanel.setLocationPollingService(locationPollingService);
 
         // Register realm/vehicle tree as discovery listener
         discoveryService.addListener(realmVehicleTree);
