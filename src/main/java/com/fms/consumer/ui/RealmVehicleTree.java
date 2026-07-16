@@ -10,8 +10,8 @@ import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 /**
  * A hierarchical tree component that displays realms as parent nodes
@@ -115,8 +115,10 @@ public class RealmVehicleTree extends VerticalLayout implements DiscoveryListene
     private final Map<String, TreeNode> realmNodes = new LinkedHashMap<>();
     private final Map<String, List<TreeNode>> realmVehicleNodes = new LinkedHashMap<>();
 
-    // Once true, all subsequent discovery listener callbacks are ignored
-    private volatile boolean initialDataLoaded = false;
+    // Once true, realm updates are blocked (keeps tree stable after initial load)
+    private volatile boolean realmsLoaded = false;
+    // Tracks which realms have already had their vehicles populated
+    private final Set<String> vehiclesLoadedForRealms = ConcurrentHashMap.newKeySet();
 
     /**
      * Listener interface for vehicle selection changes.
@@ -259,7 +261,7 @@ public class RealmVehicleTree extends VerticalLayout implements DiscoveryListene
         }
 
         dataProvider.refreshAll();
-        initialDataLoaded = true;
+        realmsLoaded = true;
     }
 
     /**
@@ -343,86 +345,45 @@ public class RealmVehicleTree extends VerticalLayout implements DiscoveryListene
 
     @Override
     public void onRealmsUpdated(List<Realm> realms) {
-        if (initialDataLoaded) {
-            return; // Tree already populated, ignore subsequent updates
+        if (realmsLoaded) {
+            return; // Realms already loaded, ignore subsequent updates
         }
-        getUI().ifPresent(ui -> ui.access(() -> {
-            if (!hasDataChanged(realms)) {
-                return; // Skip update - data hasn't changed
-            }
-            setData(realms);
-        }));
-    }
-
-    private boolean hasDataChanged(List<Realm> newRealms) {
-        if (newRealms == null && realmNodes.isEmpty()) return false;
-        if (newRealms == null || newRealms.size() != realmNodes.size()) return true;
-
-        // Check if realm IDs match
-        Set<String> currentRealmIds = realmNodes.keySet();
-        Set<String> newRealmIds = newRealms.stream().map(Realm::getId).collect(Collectors.toSet());
-        if (!currentRealmIds.equals(newRealmIds)) return true;
-
-        // Check if vehicle counts changed per realm
-        for (Realm realm : newRealms) {
-            List<TreeNode> existingVehicles = realmVehicleNodes.get(realm.getId());
-            int existingCount = existingVehicles != null ? existingVehicles.size() : 0;
-            int newCount = realm.getVehicles() != null ? realm.getVehicles().size() : 0;
-            if (existingCount != newCount) return true;
-        }
-
-        return false;
+        getUI().ifPresent(ui -> ui.access(() -> setData(realms)));
     }
 
     @Override
     public void onVehiclesUpdated(String realmId, List<Vehicle> vehicles) {
-        if (initialDataLoaded) {
-            return; // Tree already populated, ignore subsequent updates
+        // Allow vehicle updates only once per realm (for initial population)
+        if (vehiclesLoadedForRealms.contains(realmId)) {
+            return; // Already populated vehicles for this realm
         }
+
         getUI().ifPresent(ui -> ui.access(() -> {
             TreeNode realmNode = realmNodes.get(realmId);
             if (realmNode == null) {
                 return;
             }
 
-            // Check if vehicle data actually changed
+            // Only add if we don't have vehicles yet for this realm
             List<TreeNode> existingVehicleNodes = realmVehicleNodes.get(realmId);
-            int existingCount = existingVehicleNodes != null ? existingVehicleNodes.size() : 0;
-            int newCount = vehicles != null ? vehicles.size() : 0;
-
-            if (existingCount == newCount && existingCount > 0) {
-                // Same count - check if IDs match
-                Set<String> existingIds = existingVehicleNodes.stream()
-                        .map(TreeNode::getId)
-                        .collect(Collectors.toSet());
-                Set<String> newIds = vehicles.stream()
-                        .map(Vehicle::getId)
-                        .collect(Collectors.toSet());
-                if (existingIds.equals(newIds)) {
-                    return; // No change, skip update to preserve expanded/selection state
-                }
-            } else if (existingCount == 0 && newCount == 0) {
-                return; // Both empty, nothing to do
+            if (existingVehicleNodes != null && !existingVehicleNodes.isEmpty()) {
+                vehiclesLoadedForRealms.add(realmId);
+                return;
             }
 
-            // Data changed - update the tree
-            if (existingVehicleNodes != null) {
-                for (TreeNode vehicleNode : existingVehicleNodes) {
-                    treeData.removeItem(vehicleNode);
-                }
-            }
-
+            // Add vehicle nodes
             List<TreeNode> newVehicleNodes = new ArrayList<>();
-            if (vehicles != null) {
+            if (vehicles != null && !vehicles.isEmpty()) {
                 for (Vehicle vehicle : vehicles) {
                     TreeNode vehicleNode = new TreeNode(vehicle);
                     treeData.addItem(realmNode, vehicleNode);
                     newVehicleNodes.add(vehicleNode);
                 }
+                realmVehicleNodes.put(realmId, newVehicleNodes);
+                dataProvider.refreshAll();
             }
-            realmVehicleNodes.put(realmId, newVehicleNodes);
 
-            dataProvider.refreshAll();
+            vehiclesLoadedForRealms.add(realmId);
         }));
     }
 
