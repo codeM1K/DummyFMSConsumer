@@ -24,9 +24,9 @@ import java.util.concurrent.*;
  * Replaces WebSocket-based location streaming since the WebSocket endpoint
  * at fms.pcp.com.gr is not available (returns 404).
  *
- * <p>Polls the asset query endpoint every 1 second to get updated location
- * data from the {@code attributes.location} field of each asset. Only polls
- * for subscribed vehicles when consumption is active.</p>
+ * <p>Polls the asset query endpoint at a configurable interval (minimum 2 seconds)
+ * to get updated location data from the {@code attributes.location} field of each
+ * asset. Only polls for subscribed vehicles when consumption is active.</p>
  */
 @Service
 public class LocationPollingService {
@@ -63,9 +63,10 @@ public class LocationPollingService {
             t.setDaemon(true);
             return t;
         });
-        // Start polling every 1 second
-        scheduler.scheduleAtFixedRate(this::pollLocationData, 1, 1, TimeUnit.SECONDS);
-        log.info("LocationPollingService initialized with 1-second polling interval");
+        // Start polling with configurable interval (minimum 2 seconds)
+        int pollInterval = Math.max(2, configService.getMetricsRefreshInterval());
+        scheduler.scheduleAtFixedRate(this::pollLocationData, pollInterval, pollInterval, TimeUnit.SECONDS);
+        log.info("LocationPollingService initialized with {}-second polling interval", pollInterval);
     }
 
     /**
