@@ -1,6 +1,7 @@
 package com.fms.consumer.ui;
 
 import com.fms.consumer.integration.LocationDataHandler;
+import com.fms.consumer.model.ConsumptionMode;
 import com.fms.consumer.service.AuthenticationService;
 import com.fms.consumer.service.AuthenticationResult;
 import com.fms.consumer.service.ConsumptionOrchestrator;
@@ -124,7 +125,21 @@ public class MainView extends VerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        log.info("MainView attached, initiating authentication");
+        log.info("MainView attached, resetting state and initiating authentication");
+
+        // Reset state on page load/refresh
+        metricsCollector.reset();
+        if (consumptionOrchestrator.getCurrentMode() != ConsumptionMode.IDLE) {
+            if (consumptionOrchestrator.isRandomModeActive()) {
+                consumptionOrchestrator.stopRandomMode();
+            } else {
+                consumptionOrchestrator.stopAllControlledSessions();
+            }
+        }
+        locationPollingService.stop();
+        locationPollingService.unsubscribeAll();
+        consumptionControlPanel.refreshStatus();
+        metricsPanel.stopTimer();
 
         UI ui = attachEvent.getUI();
 

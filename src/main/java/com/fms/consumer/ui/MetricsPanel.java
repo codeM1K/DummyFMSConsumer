@@ -105,6 +105,8 @@ public class MetricsPanel extends VerticalLayout {
         perClientSection.setPadding(false);
         perClientSection.setSpacing(false);
         perClientSection.setVisible(false);
+        perClientSection.getStyle().set("max-height", "200px").set("overflow-y", "auto")
+                .set("border", "1px solid #e0e0e0").set("border-radius", "4px").set("padding", "8px");
         perClientHeader.setVisible(false);
 
         add(header, mainMetrics, pollingStatus, perClientHeader, perClientSection);
@@ -291,13 +293,31 @@ public class MetricsPanel extends VerticalLayout {
         }
 
         perClientSection.removeAll();
-        clientMetrics.forEach((clientId, cm) -> {
-            Span clientLine = new Span(String.format(
-                    "Client %s — Connections: %d, Updates: %d, Avg Latency: %.1f ms",
-                    cm.getClientId(), cm.getConnections(), cm.getUpdatesReceived(), cm.getAverageLatency()
-            ));
-            perClientSection.add(clientLine);
-        });
+
+        // Show summary first
+        Span summary = new Span(String.format("Total clients: %d", clientMetrics.size()));
+        summary.getStyle().set("font-weight", "bold").set("margin-bottom", "4px");
+        perClientSection.add(summary);
+
+        // Show top 20 clients by updates (sorted descending)
+        clientMetrics.entrySet().stream()
+                .sorted((a, b) -> Long.compare(b.getValue().getUpdatesReceived(), a.getValue().getUpdatesReceived()))
+                .limit(20)
+                .forEach((entry) -> {
+                    ClientMetrics cm = entry.getValue();
+                    Span clientLine = new Span(String.format(
+                            "%s — Updates: %d, Avg Latency: %.1f ms",
+                            cm.getClientId(), cm.getUpdatesReceived(), cm.getAverageLatency()
+                    ));
+                    clientLine.getStyle().set("font-size", "0.85em");
+                    perClientSection.add(clientLine);
+                });
+
+        if (clientMetrics.size() > 20) {
+            Span moreLabel = new Span("... and " + (clientMetrics.size() - 20) + " more clients");
+            moreLabel.getStyle().set("font-style", "italic").set("color", "#999");
+            perClientSection.add(moreLabel);
+        }
     }
 
     // --- Package-private accessors for testing ---

@@ -4,6 +4,7 @@ import com.fms.consumer.integration.LocationDataListener;
 import com.fms.consumer.model.LocationData;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.provider.ListDataProvider;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -153,6 +154,8 @@ public class LocationDataGrid extends VerticalLayout implements LocationDataList
 
     private final Grid<LocationDataRow> grid;
     private final ConcurrentHashMap<String, LocationDataRow> rowsByVehicleId;
+    private final List<LocationDataRow> dataList = new ArrayList<>();
+    private ListDataProvider<LocationDataRow> listDataProvider;
 
     /**
      * Creates a new LocationDataGrid with configured columns and an empty data set.
@@ -162,6 +165,9 @@ public class LocationDataGrid extends VerticalLayout implements LocationDataList
         this.grid = new Grid<>(LocationDataRow.class, false);
 
         configureGrid();
+
+        listDataProvider = new ListDataProvider<>(dataList);
+        grid.setDataProvider(listDataProvider);
 
         setSizeFull();
         setPadding(false);
@@ -339,6 +345,8 @@ public class LocationDataGrid extends VerticalLayout implements LocationDataList
     // --- Internal helpers ---
 
     private void refreshGrid() {
-        grid.setItems(rowsByVehicleId.values());
+        dataList.clear();
+        dataList.addAll(rowsByVehicleId.values());
+        listDataProvider.refreshAll();
     }
 }
