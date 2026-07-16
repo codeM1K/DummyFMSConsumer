@@ -225,6 +225,11 @@ public class DiscoveryService {
                     return realms;
                 })
                 .exceptionally(throwable -> {
+                    if (is401Error(throwable)) {
+                        log.warn("[{}] Got 401 on realm discovery, invalidating session for re-authentication",
+                                Instant.now());
+                        authService.invalidateSession();
+                    }
                     log.error("[{}] Realm discovery failed: {}",
                             Instant.now(), throwable.getMessage(), throwable);
                     notifyDiscoveryError(throwable);
@@ -257,6 +262,11 @@ public class DiscoveryService {
                     return vehicles;
                 })
                 .exceptionally(throwable -> {
+                    if (is401Error(throwable)) {
+                        log.warn("[{}] Got 401 on vehicle discovery for realm '{}', invalidating session for re-authentication",
+                                Instant.now(), realmId);
+                        authService.invalidateSession();
+                    }
                     log.error("[{}] Vehicle discovery failed for realm '{}': {}",
                             Instant.now(), realmId, throwable.getMessage(), throwable);
                     notifyDiscoveryError(throwable);
@@ -368,6 +378,17 @@ public class DiscoveryService {
                 }
             });
         }, delay, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Checks if the given throwable represents a 401 Unauthorized error.
+     */
+    private boolean is401Error(Throwable throwable) {
+        String message = throwable.getMessage();
+        if (message != null && message.contains("401")) return true;
+        Throwable cause = throwable.getCause();
+        if (cause != null && cause.getMessage() != null && cause.getMessage().contains("401")) return true;
+        return false;
     }
 
     private Realm convertToRealm(RealmDTO dto) {

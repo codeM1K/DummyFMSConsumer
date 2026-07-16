@@ -24,6 +24,7 @@ public class AuthenticationService {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
 
     private volatile String sessionToken;
+    private volatile Instant tokenExpiryTime;
 
     private final ConfigurationService configService;
     private final OpenRemoteRestClient restClient;
@@ -76,13 +77,19 @@ public class AuthenticationService {
     public void invalidateSession() {
         log.info("[{}] Session invalidated, triggering re-authentication", Instant.now());
         sessionToken = null;
+        tokenExpiryTime = null;
         scheduleReauthentication();
     }
 
     /**
-     * Returns the current session token, or null if not authenticated.
+     * Returns the current session token, or null if not authenticated or token has expired.
      */
     public String getSessionToken() {
+        if (sessionToken != null && tokenExpiryTime != null && Instant.now().isAfter(tokenExpiryTime)) {
+            log.warn("[{}] Token expired, clearing session", Instant.now());
+            sessionToken = null;
+            tokenExpiryTime = null;
+        }
         return sessionToken;
     }
 
@@ -165,7 +172,10 @@ public class AuthenticationService {
     private AuthenticationResult handleSuccess(AuthResponse authResponse) {
         if (authResponse.isSuccess() && authResponse.getSessionToken() != null) {
             this.sessionToken = authResponse.getSessionToken();
-            log.info("[{}] Authentication successful, session token stored", Instant.now());
+            this.tokenExpiryTime = Instant.now().plusSeconds(authResponse.getExpiresIn());
+            log.info("[{}] Authentication successful, session token stored (expires in {}s)",
+                    Instant.now(), authResponse.getExpiresIn());
+            scheduleTokenRefresh(authResponse.getExpiresIn());
             return AuthenticationResult.success(sessionToken);
         } else {
             String errorMsg = authResponse.getErrorMessage() != null
@@ -175,6 +185,32 @@ public class AuthenticationService {
             // Return failure so retry logic can kick in
             return AuthenticationResult.failure(errorMsg);
         }
+    }
+
+    /**
+     * Schedules a proactive token refresh at 80% of the token's expiry time.
+     * This ensures the token is refreshed before it actually expires.
+     */
+    private void scheduleTokenRefresh(int expiresInSeconds) {
+        long refreshDelay = (long) (expiresInSeconds * 0.8);
+        log.info("[{}] Scheduling proactive token refresh in {} seconds (token expires in {}s)",
+                Instant.now(), refreshDelay, expiresInSeconds);
+        scheduler.schedule(() -> {
+            log.info("[{}] Proactive token refresh triggered", Instant.now());
+            this.sessionToken = null;
+            this.tokenExpiryTime = null;
+            authenticate().whenComplete((result, throwable) -> {
+                if (throwable != null) {
+                    log.error("[{}] Proactive token refresh failed: {}",
+                            Instant.now(), throwable.getMessage());
+                } else if (!result.isSuccess()) {
+                    log.error("[{}] Proactive token refresh failed: {}",
+                            Instant.now(), result.getErrorMessage());
+                } else {
+                    log.info("[{}] Proactive token refresh successful", Instant.now());
+                }
+            });
+        }, refreshDelay, TimeUnit.SECONDS);
     }
 
     @PreDestroy

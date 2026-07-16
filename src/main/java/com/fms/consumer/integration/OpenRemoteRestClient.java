@@ -155,8 +155,10 @@ public class OpenRemoteRestClient {
             try {
                 JsonNode root = objectMapper.readTree(response.body());
                 String accessToken = root.get("access_token").asText();
+                int expiresIn = root.has("expires_in") ? root.get("expires_in").asInt(300) : 300;
                 AuthResponse authResponse = new AuthResponse(accessToken, true, null);
-                log.debug("OAuth2 authentication successful");
+                authResponse.setExpiresIn(expiresIn);
+                log.debug("OAuth2 authentication successful, token expires in {}s", expiresIn);
                 return authResponse;
             } catch (Exception e) {
                 log.error("[{}] Failed to parse OAuth2 token response - URL: {}, Error: {}",

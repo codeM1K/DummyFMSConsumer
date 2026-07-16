@@ -11,6 +11,7 @@ public class AuthResponse {
     private String sessionToken;
     private boolean success;
     private String errorMessage;
+    private int expiresIn = 300; // default 5 minutes
 
     public AuthResponse() {
     }
@@ -45,12 +46,21 @@ public class AuthResponse {
         this.errorMessage = errorMessage;
     }
 
+    public int getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(int expiresIn) {
+        this.expiresIn = expiresIn;
+    }
+
     @Override
     public String toString() {
         return "AuthResponse{" +
                 "sessionToken='" + (sessionToken != null ? "***" : "null") + '\'' +
                 ", success=" + success +
                 ", errorMessage='" + errorMessage + '\'' +
+                ", expiresIn=" + expiresIn +
                 '}';
     }
 }
