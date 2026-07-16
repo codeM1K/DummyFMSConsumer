@@ -1,10 +1,12 @@
 package com.fms.consumer.integration;
 
 import com.fms.consumer.model.Vehicle;
+import com.fms.consumer.service.AuthenticationService;
 import com.fms.consumer.service.ConfigurationService;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -32,8 +34,11 @@ public class WebSocketClientPool {
     private final ExecutorService executor;
     private final LocationDataHandler dataHandler;
     private final ConfigurationService configService;
+    private final AuthenticationService authenticationService;
 
-    public WebSocketClientPool(LocationDataHandler dataHandler, ConfigurationService configService) {
+    @Autowired
+    public WebSocketClientPool(LocationDataHandler dataHandler, ConfigurationService configService,
+                               AuthenticationService authenticationService) {
         this.connections = new ConcurrentHashMap<>();
         this.executor = Executors.newCachedThreadPool(r -> {
             Thread t = new Thread(r, "ws-pool-" + Thread.currentThread().getId());
@@ -42,13 +47,21 @@ public class WebSocketClientPool {
         });
         this.dataHandler = dataHandler;
         this.configService = configService;
+        this.authenticationService = authenticationService;
         logger.info("WebSocketClientPool initialized");
+    }
+
+    /**
+     * Package-private constructor for testing without AuthenticationService.
+     */
+    WebSocketClientPool(LocationDataHandler dataHandler, ConfigurationService configService) {
+        this(dataHandler, configService, null);
     }
 
     /**
      * Creates a new WebSocket connection for the given vehicle and client.
      * The connection is established asynchronously and stored in the pool upon success.
-     * The endpoint URL is derived from ConfigurationService: base URL + "/ws/location".
+     * The endpoint URL is: wss://{host}/api/master/event/ws?token=ACCESS_TOKEN
      *
      * @param vehicle  the vehicle to connect for
      * @param clientId the client identifier for multi-client support
@@ -56,7 +69,7 @@ public class WebSocketClientPool {
      */
     public CompletableFuture<WebSocketConnection> createConnection(Vehicle vehicle, String clientId) {
         String connectionKey = buildConnectionKey(vehicle.getId(), clientId);
-        String endpointUrl = configService.getApiEndpoint() + "/ws/location";
+        String endpointUrl = buildWebSocketEndpointUrl();
 
         logger.info("Creating WebSocket connection for vehicle {} (client: {}), key: {}",
                 vehicle.getId(), clientId, connectionKey);
@@ -211,5 +224,19 @@ public class WebSocketClientPool {
      */
     private String buildConnectionKey(String vehicleId, String clientId) {
         return vehicleId + "_" + clientId;
+    }
+
+    /**
+     * Builds the WebSocket endpoint URL using the configured API base URL and access token.
+     * Converts https:// to wss:// and http:// to ws://.
+     * Path: /api/master/event/ws?token=ACCESS_TOKEN
+     *
+     * @return the WebSocket endpoint URL
+     */
+    private String buildWebSocketEndpointUrl() {
+        String baseUrl = configService.getApiEndpoint();
+        String wsBaseUrl = baseUrl.replace("https://", "wss://").replace("http://", "ws://");
+        String token = (authenticationService != null) ? authenticationService.getSessionToken() : null;
+        return wsBaseUrl + "/api/master/event/ws" + (token != null ? "?token=" + token : "");
     }
 }

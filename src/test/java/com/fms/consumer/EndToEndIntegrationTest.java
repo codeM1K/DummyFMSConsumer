@@ -49,7 +49,7 @@ class EndToEndIntegrationTest {
 
         authenticationService = new AuthenticationService(configurationService, restClient);
         discoveryService = new DiscoveryService(authenticationService, restClient, configurationService);
-        webSocketClientPool = new WebSocketClientPool(locationDataHandler, configurationService);
+        webSocketClientPool = new WebSocketClientPool(locationDataHandler, configurationService, authenticationService);
         consumptionOrchestrator = new ConsumptionOrchestrator(
                 webSocketClientPool, metricsCollector, discoveryService, configurationService);
     }
@@ -103,8 +103,8 @@ class EndToEndIntegrationTest {
     void configurationServiceIntegration_readsAllProperties() {
         assertNotNull(configurationService);
         assertEquals("https://fms.pcp.com.gr", configurationService.getApiEndpoint());
-        assertEquals("alamanos-test", configurationService.getUsername());
-        assertEquals("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc", configurationService.getAuthToken());
+        assertEquals("alamanos-test", configurationService.getClientId());
+        assertEquals("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc", configurationService.getClientSecret());
         assertEquals(60, configurationService.getRealmRefreshInterval());
         assertEquals(60, configurationService.getVehicleRefreshInterval());
         assertEquals(1, configurationService.getMetricsRefreshInterval());

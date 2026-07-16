@@ -9,8 +9,8 @@ services:
     environment:
       - SERVER_PORT=8080
       - OPENREMOTE_API_ENDPOINT=https://fms.pcp.com.gr
-      - OPENREMOTE_API_USERNAME=alamanos-test
-      - OPENREMOTE_API_TOKEN=hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc
+      - OPENREMOTE_API_CLIENT_ID=alamanos-test
+      - OPENREMOTE_API_CLIENT_SECRET=hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc
       - OPENREMOTE_REFRESH_REALMS=60
       - OPENREMOTE_REFRESH_VEHICLES=60
       - OPENREMOTE_REFRESH_METRICS=1

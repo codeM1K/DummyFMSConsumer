@@ -59,8 +59,17 @@ public class OpenRemoteProperties {
 
     public static class Api {
         private String endpoint = "https://fms.pcp.com.gr";
-        private String username = "alamanos-test";
-        private String token = "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc";
+        private String clientId = "alamanos-test";
+        private String clientSecret = "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc";
+
+        /**
+         * @deprecated Use {@link #clientId} instead. Kept for backward compatibility.
+         */
+        private String username;
+        /**
+         * @deprecated Use {@link #clientSecret} instead. Kept for backward compatibility.
+         */
+        private String token;
 
         public String getEndpoint() {
             return endpoint;
@@ -70,20 +79,58 @@ public class OpenRemoteProperties {
             this.endpoint = endpoint;
         }
 
-        public String getUsername() {
-            return username;
+        public String getClientId() {
+            return clientId;
         }
 
+        public void setClientId(String clientId) {
+            this.clientId = clientId;
+        }
+
+        public String getClientSecret() {
+            return clientSecret;
+        }
+
+        public void setClientSecret(String clientSecret) {
+            this.clientSecret = clientSecret;
+        }
+
+        /**
+         * @deprecated Use {@link #getClientId()} instead.
+         */
+        @Deprecated
+        public String getUsername() {
+            return username != null ? username : clientId;
+        }
+
+        /**
+         * @deprecated Use {@link #setClientId(String)} instead.
+         */
+        @Deprecated
         public void setUsername(String username) {
             this.username = username;
+            if (username != null) {
+                this.clientId = username;
+            }
         }
 
+        /**
+         * @deprecated Use {@link #getClientSecret()} instead.
+         */
+        @Deprecated
         public String getToken() {
-            return token;
+            return token != null ? token : clientSecret;
         }
 
+        /**
+         * @deprecated Use {@link #setClientSecret(String)} instead.
+         */
+        @Deprecated
         public void setToken(String token) {
             this.token = token;
+            if (token != null) {
+                this.clientSecret = token;
+            }
         }
     }
 

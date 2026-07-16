@@ -39,8 +39,8 @@ class AuthenticationServiceTest {
         mocks = MockitoAnnotations.openMocks(this);
 
         // Configure short retry delays to keep tests fast
-        when(configService.getUsername()).thenReturn("test-user");
-        when(configService.getAuthToken()).thenReturn("test-token");
+        when(configService.getClientId()).thenReturn("test-user");
+        when(configService.getClientSecret()).thenReturn("test-token");
         when(configService.getRetryMaxAttempts()).thenReturn(3);
         when(configService.getRetryInitialDelay()).thenReturn(10);
         when(configService.getRetryMaxDelay()).thenReturn(50);

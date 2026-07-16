@@ -34,8 +34,8 @@ class SessionCredentialStoragePropertyTest {
         configService = mock(ConfigurationService.class);
         restClient = mock(OpenRemoteRestClient.class);
 
-        when(configService.getUsername()).thenReturn("alamanos-test");
-        when(configService.getAuthToken()).thenReturn("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc");
+        when(configService.getClientId()).thenReturn("alamanos-test");
+        when(configService.getClientSecret()).thenReturn("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc");
         when(configService.getRetryMaxAttempts()).thenReturn(3);
         when(configService.getRetryInitialDelay()).thenReturn(1000);
         when(configService.getRetryMaxDelay()).thenReturn(30000);

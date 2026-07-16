@@ -52,8 +52,8 @@ public class AuthenticationService {
             return CompletableFuture.completedFuture(AuthenticationResult.success(sessionToken));
         }
 
-        String username = configService.getUsername();
-        String token = configService.getAuthToken();
+        String username = configService.getClientId();
+        String token = configService.getClientSecret();
         int maxAttempts = configService.getRetryMaxAttempts();
         long initialDelay = configService.getRetryInitialDelay();
         long maxDelay = configService.getRetryMaxDelay();

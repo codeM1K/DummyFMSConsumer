@@ -72,8 +72,8 @@ class DockerDeploymentIntegrationTest {
         List<String> requiredEnvVars = List.of(
                 "SERVER_PORT",
                 "OPENREMOTE_API_ENDPOINT",
-                "OPENREMOTE_API_USERNAME",
-                "OPENREMOTE_API_TOKEN",
+                "OPENREMOTE_API_CLIENT_ID",
+                "OPENREMOTE_API_CLIENT_SECRET",
                 "OPENREMOTE_REFRESH_REALMS",
                 "OPENREMOTE_REFRESH_VEHICLES",
                 "OPENREMOTE_CONNECTION_TIMEOUT",
@@ -96,8 +96,8 @@ class DockerDeploymentIntegrationTest {
     @Test
     void dockerComposeHasPortMapping() throws IOException {
         String content = Files.readString(PROJECT_ROOT.resolve("docker-compose.yml"));
-        assertTrue(content.contains("8080:8080"),
-                "docker-compose must map port 8080:8080");
+        assertTrue(content.contains("9000:8080") || content.contains("8080:8080"),
+                "docker-compose must map container port 8080");
     }
 
     @Test

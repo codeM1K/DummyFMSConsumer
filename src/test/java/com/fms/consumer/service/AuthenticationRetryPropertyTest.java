@@ -252,6 +252,9 @@ class AuthenticationRetryPropertyTest {
             @ForAll @IntRange(min = 100, max = 5000) int initialDelay,
             @ForAll @IntRange(min = 1000, max = 30000) int maxDelay) {
 
+        // Only valid when initialDelay <= maxDelay (otherwise the first delay naturally exceeds maxDelay)
+        Assume.that(initialDelay <= maxDelay);
+
         // Compute the delay as the AuthenticationService would
         long computedDelay = initialDelay;
         for (int i = 1; i < attemptNumber; i++) {

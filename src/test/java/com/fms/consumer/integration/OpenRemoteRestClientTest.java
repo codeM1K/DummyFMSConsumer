@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for {@link OpenRemoteRestClient}.
- * Uses MockWebServer to simulate the Open Remote API.
+ * Uses MockWebServer to simulate the Open Remote API (OAuth2/Keycloak).
  */
 class OpenRemoteRestClientTest {
 
@@ -57,9 +57,10 @@ class OpenRemoteRestClientTest {
     void authenticate_withValidCredentials_returnsAuthResponse() throws Exception {
         String responseBody = """
                 {
-                    "sessionToken": "abc123-session-token",
-                    "success": true,
-                    "errorMessage": null
+                    "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.test-token",
+                    "expires_in": 300,
+                    "refresh_expires_in": 1800,
+                    "token_type": "Bearer"
                 }
                 """;
         mockServer.enqueue(new MockResponse()
@@ -73,7 +74,7 @@ class OpenRemoteRestClientTest {
         AuthResponse response = future.get();
 
         assertNotNull(response);
-        assertEquals("abc123-session-token", response.getSessionToken());
+        assertEquals("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.test-token", response.getSessionToken());
         assertTrue(response.isSuccess());
         assertNull(response.getErrorMessage());
     }
@@ -85,11 +86,11 @@ class OpenRemoteRestClientTest {
         mockServer.enqueue(new MockResponse()
                 .setResponseCode(401)
                 .setHeader("Content-Type", "application/json")
-                .setBody("{\"error\": \"Invalid credentials\"}"));
+                .setBody("{\"error\": \"unauthorized_client\"}"));
 
         client = new OpenRemoteRestClient(configurationService);
 
-        CompletableFuture<AuthResponse> future = client.authenticate("wrong-user", "wrong-token");
+        CompletableFuture<AuthResponse> future = client.authenticate("wrong-client", "wrong-secret");
 
         ExecutionException exception = assertThrows(ExecutionException.class, future::get);
         assertInstanceOf(RuntimeException.class, exception.getCause());
@@ -131,7 +132,7 @@ class OpenRemoteRestClientTest {
 
         client = new OpenRemoteRestClient(configurationService);
 
-        CompletableFuture<List<RealmDTO>> future = client.getRealms("valid-session-token");
+        CompletableFuture<List<RealmDTO>> future = client.getRealms("valid-access-token");
         List<RealmDTO> realms = future.get();
 
         assertNotNull(realms);
@@ -178,7 +179,7 @@ class OpenRemoteRestClientTest {
 
         client = new OpenRemoteRestClient(configurationService);
 
-        CompletableFuture<List<VehicleDTO>> future = client.getVehicles("realm-1", "valid-session-token");
+        CompletableFuture<List<VehicleDTO>> future = client.getVehicles("realm-1", "valid-access-token");
         List<VehicleDTO> vehicles = future.get();
 
         assertNotNull(vehicles);
@@ -209,41 +210,41 @@ class OpenRemoteRestClientTest {
         assertTrue(exception.getCause().getMessage().contains("404"));
     }
 
-    // --- Request header verification tests ---
+    // --- Request format verification tests ---
 
     @Test
-    void authenticate_sendsCorrectHeaders() throws Exception {
+    void authenticate_sendsFormUrlEncodedBody() throws Exception {
         mockServer.enqueue(new MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody("{\"sessionToken\": \"token\", \"success\": true, \"errorMessage\": null}"));
+                .setBody("{\"access_token\": \"token\", \"expires_in\": 300, \"token_type\": \"Bearer\"}"));
 
         client = new OpenRemoteRestClient(configurationService);
 
         client.authenticate("alamanos-test", "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc").get();
 
         RecordedRequest request = mockServer.takeRequest();
-        assertEquals("application/json", request.getHeader("Content-Type"));
-        assertEquals("application/json", request.getHeader("Accept"));
+        assertEquals("application/x-www-form-urlencoded", request.getHeader("Content-Type"));
+        assertEquals("POST", request.getMethod());
+        String body = request.getBody().readUtf8();
+        assertTrue(body.contains("grant_type=client_credentials"));
+        assertTrue(body.contains("client_id=alamanos-test"));
+        assertTrue(body.contains("client_secret=hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc"));
     }
 
     @Test
-    void authenticate_sendsCorrectJsonBody() throws Exception {
+    void authenticate_sendsToCorrectEndpoint() throws Exception {
         mockServer.enqueue(new MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody("{\"sessionToken\": \"token\", \"success\": true, \"errorMessage\": null}"));
+                .setBody("{\"access_token\": \"token\", \"expires_in\": 300, \"token_type\": \"Bearer\"}"));
 
         client = new OpenRemoteRestClient(configurationService);
 
         client.authenticate("alamanos-test", "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc").get();
 
         RecordedRequest request = mockServer.takeRequest();
-        String body = request.getBody().readUtf8();
-        assertTrue(body.contains("\"username\""));
-        assertTrue(body.contains("\"alamanos-test\""));
-        assertTrue(body.contains("\"secret\""));
-        assertTrue(body.contains("\"hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc\""));
+        assertEquals("/auth/realms/master/protocol/openid-connect/token", request.getPath());
     }
 
     @Test
@@ -255,16 +256,17 @@ class OpenRemoteRestClientTest {
 
         client = new OpenRemoteRestClient(configurationService);
 
-        client.getRealms("session-token").get();
+        client.getRealms("my-access-token").get();
 
         RecordedRequest request = mockServer.takeRequest();
-        assertEquals("application/json", request.getHeader("Content-Type"));
+        assertEquals("Bearer my-access-token", request.getHeader("Authorization"));
         assertEquals("application/json", request.getHeader("Accept"));
         assertEquals("GET", request.getMethod());
+        assertEquals("/api/master/realm", request.getPath());
     }
 
     @Test
-    void getVehicles_sendsCorrectHeaders() throws Exception {
+    void getVehicles_sendsCorrectHeadersAndBody() throws Exception {
         mockServer.enqueue(new MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
@@ -272,11 +274,18 @@ class OpenRemoteRestClientTest {
 
         client = new OpenRemoteRestClient(configurationService);
 
-        client.getVehicles("realm-1", "session-token").get();
+        client.getVehicles("realm-1", "my-access-token").get();
 
         RecordedRequest request = mockServer.takeRequest();
+        assertEquals("Bearer my-access-token", request.getHeader("Authorization"));
         assertEquals("application/json", request.getHeader("Content-Type"));
         assertEquals("application/json", request.getHeader("Accept"));
-        assertEquals("GET", request.getMethod());
+        assertEquals("POST", request.getMethod());
+        assertEquals("/api/master/asset/query", request.getPath());
+        String body = request.getBody().readUtf8();
+        assertTrue(body.contains("\"realm\""));
+        assertTrue(body.contains("\"name\""));
+        assertTrue(body.contains("realm-1"));
+        assertTrue(body.contains("\"select\""));
     }
 }

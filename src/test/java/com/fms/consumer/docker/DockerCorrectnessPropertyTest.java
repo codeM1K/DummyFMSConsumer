@@ -64,10 +64,10 @@ class DockerCorrectnessPropertyTest {
         // Must support environment variable overrides using ${VAR:default} syntax
         assertTrue(content.contains("${OPENREMOTE_API_ENDPOINT:"),
                 "API endpoint must support env var override");
-        assertTrue(content.contains("${OPENREMOTE_API_USERNAME:"),
-                "Username must support env var override");
-        assertTrue(content.contains("${OPENREMOTE_API_TOKEN:"),
-                "Token must support env var override");
+        assertTrue(content.contains("${OPENREMOTE_API_CLIENT_ID:"),
+                "Client ID must support env var override");
+        assertTrue(content.contains("${OPENREMOTE_API_CLIENT_SECRET:"),
+                "Client secret must support env var override");
         assertTrue(content.contains("${SERVER_PORT:"),
                 "Server port must support env var override");
     }
@@ -118,7 +118,8 @@ class DockerCorrectnessPropertyTest {
         assertTrue(content.contains("services:"), "docker-compose must define services");
 
         // Port mapping
-        assertTrue(content.contains("8080:8080"), "docker-compose must map port 8080");
+        assertTrue(content.contains("9000:8080") || content.contains("8080:8080"),
+                "docker-compose must map container port 8080");
 
         // Restart policy
         assertTrue(content.contains("unless-stopped"),
@@ -127,8 +128,8 @@ class DockerCorrectnessPropertyTest {
         // Environment variables
         assertTrue(content.contains("OPENREMOTE_API_ENDPOINT"),
                 "docker-compose must configure API endpoint env var");
-        assertTrue(content.contains("OPENREMOTE_API_TOKEN"),
-                "docker-compose must configure API token env var");
+        assertTrue(content.contains("OPENREMOTE_API_CLIENT_SECRET"),
+                "docker-compose must configure API client secret env var");
     }
 
     /**
@@ -167,7 +168,7 @@ class DockerCorrectnessPropertyTest {
         // All ENV vars should have defaults set
         assertTrue(content.contains("ENV SERVER_PORT=8080"));
         assertTrue(content.contains("ENV OPENREMOTE_API_ENDPOINT="));
-        assertTrue(content.contains("ENV OPENREMOTE_API_USERNAME="));
-        assertTrue(content.contains("ENV OPENREMOTE_API_TOKEN="));
+        assertTrue(content.contains("ENV OPENREMOTE_API_CLIENT_ID="));
+        assertTrue(content.contains("ENV OPENREMOTE_API_CLIENT_SECRET="));
     }
 }

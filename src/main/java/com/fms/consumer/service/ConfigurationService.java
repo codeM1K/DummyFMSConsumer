@@ -22,6 +22,8 @@ public class ConfigurationService {
     private static final Logger log = LoggerFactory.getLogger(ConfigurationService.class);
 
     private static final String DEFAULT_ENDPOINT = "https://fms.pcp.com.gr";
+    private static final String DEFAULT_CLIENT_ID = "alamanos-test";
+    private static final String DEFAULT_CLIENT_SECRET = "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc";
     private static final String DEFAULT_USERNAME = "alamanos-test";
     private static final String DEFAULT_TOKEN = "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc";
 
@@ -60,27 +62,45 @@ public class ConfigurationService {
     }
 
     /**
-     * Returns the authentication username. Falls back to default if the configured value is empty.
+     * Returns the OAuth2 client ID. Falls back to default if the configured value is empty.
      */
-    public String getUsername() {
-        String username = properties.getApi().getUsername();
-        if (isNotBlank(username)) {
-            return username;
+    public String getClientId() {
+        String clientId = properties.getApi().getClientId();
+        if (isNotBlank(clientId)) {
+            return clientId;
         }
-        log.error("Username is blank or null. Falling back to default: {}", DEFAULT_USERNAME);
-        return DEFAULT_USERNAME;
+        log.error("Client ID is blank or null. Falling back to default: {}", DEFAULT_CLIENT_ID);
+        return DEFAULT_CLIENT_ID;
+    }
+
+    /**
+     * Returns the OAuth2 client secret. Falls back to default if the configured value is empty.
+     */
+    public String getClientSecret() {
+        String clientSecret = properties.getApi().getClientSecret();
+        if (isNotBlank(clientSecret)) {
+            return clientSecret;
+        }
+        log.error("Client secret is blank or null. Falling back to default.");
+        return DEFAULT_CLIENT_SECRET;
+    }
+
+    /**
+     * Returns the authentication username. Falls back to default if the configured value is empty.
+     * @deprecated Use {@link #getClientId()} instead.
+     */
+    @Deprecated
+    public String getUsername() {
+        return getClientId();
     }
 
     /**
      * Returns the authentication token. Falls back to default if the configured value is empty.
+     * @deprecated Use {@link #getClientSecret()} instead.
      */
+    @Deprecated
     public String getAuthToken() {
-        String token = properties.getApi().getToken();
-        if (isNotBlank(token)) {
-            return token;
-        }
-        log.error("Authentication token is blank or null. Falling back to default.");
-        return DEFAULT_TOKEN;
+        return getClientSecret();
     }
 
     /**
@@ -214,8 +234,8 @@ public class ConfigurationService {
     }
 
     private void logCurrentConfiguration() {
-        log.info("Current configuration - endpoint: {}, username: {}, realmRefresh: {}s, vehicleRefresh: {}s, metricsRefresh: {}s",
-                getApiEndpoint(), getUsername(),
+        log.info("Current configuration - endpoint: {}, clientId: {}, realmRefresh: {}s, vehicleRefresh: {}s, metricsRefresh: {}s",
+                getApiEndpoint(), getClientId(),
                 getRealmRefreshInterval(), getVehicleRefreshInterval(), getMetricsRefreshInterval());
         log.info("Current configuration - connectionTimeout: {}ms, establishment: {}ms, retryMaxAttempts: {}, retryInitialDelay: {}ms, retryMaxDelay: {}ms",
                 getConnectionTimeout(), getConnectionEstablishmentTimeout(),
