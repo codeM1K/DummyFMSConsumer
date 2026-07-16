@@ -34,8 +34,8 @@ class SessionCredentialStoragePropertyTest {
         configService = mock(ConfigurationService.class);
         restClient = mock(OpenRemoteRestClient.class);
 
-        when(configService.getClientId()).thenReturn("alamanos-test");
-        when(configService.getClientSecret()).thenReturn("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc");
+        when(configService.getClientId()).thenReturn("test-client-id");
+        when(configService.getClientSecret()).thenReturn("test-client-secret");
         when(configService.getRetryMaxAttempts()).thenReturn(3);
         when(configService.getRetryInitialDelay()).thenReturn(1000);
         when(configService.getRetryMaxDelay()).thenReturn(30000);
@@ -190,7 +190,7 @@ class SessionCredentialStoragePropertyTest {
     Arbitrary<String> sessionTokens() {
         return Arbitraries.of(
                 "abc123",
-                "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc",
+                "some-test-session-token-value",
                 "short",
                 "a-very-long-session-token-that-has-many-characters-1234567890",
                 "TOKEN_WITH_UNDERSCORES",

@@ -105,8 +105,8 @@ class EndToEndIntegrationTest {
     void configurationServiceIntegration_readsAllProperties() {
         assertNotNull(configurationService);
         assertEquals("https://fms.pcp.com.gr", configurationService.getApiEndpoint());
-        assertEquals("alamanos-test", configurationService.getClientId());
-        assertEquals("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc", configurationService.getClientSecret());
+        assertEquals("test-client-id", configurationService.getClientId());
+        assertEquals("test-client-secret", configurationService.getClientSecret());
         assertEquals(60, configurationService.getRealmRefreshInterval());
         assertEquals(60, configurationService.getVehicleRefreshInterval());
         assertEquals(1, configurationService.getMetricsRefreshInterval());
@@ -251,8 +251,8 @@ class EndToEndIntegrationTest {
 
         OpenRemoteProperties.Api api = new OpenRemoteProperties.Api();
         api.setEndpoint("https://fms.pcp.com.gr");
-        api.setUsername("alamanos-test");
-        api.setToken("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc");
+        api.setUsername("test-client-id");
+        api.setToken("test-client-secret");
         props.setApi(api);
 
         OpenRemoteProperties.Refresh refresh = new OpenRemoteProperties.Refresh();

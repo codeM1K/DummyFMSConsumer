@@ -70,7 +70,7 @@ class OpenRemoteRestClientTest {
 
         client = new OpenRemoteRestClient(configurationService);
 
-        CompletableFuture<AuthResponse> future = client.authenticate("alamanos-test", "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc");
+        CompletableFuture<AuthResponse> future = client.authenticate("test-client-id", "test-client-secret");
         AuthResponse response = future.get();
 
         assertNotNull(response);
@@ -107,7 +107,7 @@ class OpenRemoteRestClientTest {
 
         client = new OpenRemoteRestClient(configurationService);
 
-        CompletableFuture<AuthResponse> future = client.authenticate("alamanos-test", "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc");
+        CompletableFuture<AuthResponse> future = client.authenticate("test-client-id", "test-client-secret");
 
         ExecutionException exception = assertThrows(ExecutionException.class, future::get);
         assertInstanceOf(RuntimeException.class, exception.getCause());
@@ -221,15 +221,15 @@ class OpenRemoteRestClientTest {
 
         client = new OpenRemoteRestClient(configurationService);
 
-        client.authenticate("alamanos-test", "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc").get();
+        client.authenticate("test-client-id", "test-client-secret").get();
 
         RecordedRequest request = mockServer.takeRequest();
         assertEquals("application/x-www-form-urlencoded", request.getHeader("Content-Type"));
         assertEquals("POST", request.getMethod());
         String body = request.getBody().readUtf8();
         assertTrue(body.contains("grant_type=client_credentials"));
-        assertTrue(body.contains("client_id=alamanos-test"));
-        assertTrue(body.contains("client_secret=hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc"));
+        assertTrue(body.contains("client_id=test-client-id"));
+        assertTrue(body.contains("client_secret=test-client-secret"));
     }
 
     @Test
@@ -241,7 +241,7 @@ class OpenRemoteRestClientTest {
 
         client = new OpenRemoteRestClient(configurationService);
 
-        client.authenticate("alamanos-test", "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc").get();
+        client.authenticate("test-client-id", "test-client-secret").get();
 
         RecordedRequest request = mockServer.takeRequest();
         assertEquals("/auth/realms/master/protocol/openid-connect/token", request.getPath());

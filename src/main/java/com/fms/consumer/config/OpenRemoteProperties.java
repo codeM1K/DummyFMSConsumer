@@ -59,8 +59,8 @@ public class OpenRemoteProperties {
 
     public static class Api {
         private String endpoint = "https://fms.pcp.com.gr";
-        private String clientId = "alamanos-test";
-        private String clientSecret = "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc";
+        private String clientId = "";
+        private String clientSecret = "";
 
         /**
          * @deprecated Use {@link #clientId} instead. Kept for backward compatibility.

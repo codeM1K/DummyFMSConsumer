@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class InvalidConfigPropertyTest {
 
     private static final String DEFAULT_ENDPOINT = "https://fms.pcp.com.gr";
-    private static final String DEFAULT_USERNAME = "alamanos-test";
-    private static final String DEFAULT_TOKEN = "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc";
+    private static final String DEFAULT_USERNAME = "";
+    private static final String DEFAULT_TOKEN = "";
 
     private static final int DEFAULT_REFRESH_REALMS = 60;
     private static final int DEFAULT_REFRESH_VEHICLES = 60;

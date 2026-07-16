@@ -41,7 +41,7 @@ class HotReloadConfigurationTest {
     @Test
     @DisplayName("After changing username and reloading, new value is returned")
     void reloadConfiguration_returnsNewUsername_afterPropertyChange() {
-        assertEquals("alamanos-test", service.getUsername());
+        assertEquals("", service.getUsername());
 
         properties.getApi().setUsername("new-user");
         service.reloadConfiguration();
@@ -52,7 +52,7 @@ class HotReloadConfigurationTest {
     @Test
     @DisplayName("After changing auth token and reloading, new value is returned")
     void reloadConfiguration_returnsNewToken_afterPropertyChange() {
-        assertEquals("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc", service.getAuthToken());
+        assertEquals("", service.getAuthToken());
 
         properties.getApi().setToken("new-secret-token-12345");
         service.reloadConfiguration();
@@ -101,7 +101,7 @@ class HotReloadConfigurationTest {
         properties.getApi().setUsername("   ");
         service.reloadConfiguration();
 
-        assertEquals("alamanos-test", service.getUsername());
+        assertEquals("", service.getUsername());
     }
 
     @Test
@@ -110,7 +110,7 @@ class HotReloadConfigurationTest {
         properties.getApi().setToken(null);
         service.reloadConfiguration();
 
-        assertEquals("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc", service.getAuthToken());
+        assertEquals("", service.getAuthToken());
     }
 
     @Test
@@ -180,8 +180,8 @@ class HotReloadConfigurationTest {
         service.reloadConfiguration();
 
         assertEquals("https://changed.example.com", service.getApiEndpoint());
-        assertEquals("alamanos-test", service.getUsername());
-        assertEquals("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc", service.getAuthToken());
+        assertEquals("", service.getUsername());
+        assertEquals("", service.getAuthToken());
     }
 
     @Test
@@ -237,7 +237,7 @@ class HotReloadConfigurationTest {
 
         properties.getApi().setUsername("");
         service.reloadConfiguration();
-        assertEquals("alamanos-test", service.getUsername());
+        assertEquals("", service.getUsername());
     }
 
     @Test
@@ -273,7 +273,7 @@ class HotReloadConfigurationTest {
     void reloadConfiguration_invalidToValidToken_returnsNewValue() {
         properties.getApi().setToken(null);
         service.reloadConfiguration();
-        assertEquals("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc", service.getAuthToken());
+        assertEquals("", service.getAuthToken());
 
         properties.getApi().setToken("restored-token-abc");
         service.reloadConfiguration();

@@ -22,10 +22,10 @@ public class ConfigurationService {
     private static final Logger log = LoggerFactory.getLogger(ConfigurationService.class);
 
     private static final String DEFAULT_ENDPOINT = "https://fms.pcp.com.gr";
-    private static final String DEFAULT_CLIENT_ID = "alamanos-test";
-    private static final String DEFAULT_CLIENT_SECRET = "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc";
-    private static final String DEFAULT_USERNAME = "alamanos-test";
-    private static final String DEFAULT_TOKEN = "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc";
+    private static final String DEFAULT_CLIENT_ID = "";
+    private static final String DEFAULT_CLIENT_SECRET = "";
+    private static final String DEFAULT_USERNAME = "";
+    private static final String DEFAULT_TOKEN = "";
 
     private static final int DEFAULT_REFRESH_REALMS = 60;
     private static final int DEFAULT_REFRESH_VEHICLES = 60;

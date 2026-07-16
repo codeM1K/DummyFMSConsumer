@@ -29,8 +29,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class CredentialConfigPropertyTest {
 
-    private static final String DEFAULT_USERNAME = "alamanos-test";
-    private static final String DEFAULT_TOKEN = "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc";
+    private static final String DEFAULT_USERNAME = "";
+    private static final String DEFAULT_TOKEN = "";
 
     private OpenRemoteProperties properties;
     private ConfigurationService service;
@@ -136,7 +136,7 @@ class CredentialConfigPropertyTest {
                 "\u03B1\u03BB\u03B1\u03BC\u03AC\u03BD\u03BF\u03C2",
                 "caf\u00E9-user",
                 // Default value should also work when explicitly set
-                "alamanos-test"
+                "test-client-id"
         );
     }
 
@@ -153,7 +153,7 @@ class CredentialConfigPropertyTest {
                 "x",
                 "tk",
                 // Long tokens (API key style)
-                "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVcExtraLongSuffix1234567890",
+                "someRandomLongTokenValueForTestingPurposesExtraLongSuffix1234567890",
                 "a".repeat(256),
                 // UUID-style tokens
                 "550e8400-e29b-41d4-a716-446655440000",
@@ -180,7 +180,7 @@ class CredentialConfigPropertyTest {
                 "ALL_CAPS_TOKEN",
                 "all_lower_token",
                 // Default token value should work when explicitly set
-                "hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc"
+                "test-client-secret"
         );
     }
 }

@@ -64,18 +64,18 @@ class ConfigurationServiceTest {
     @Test
     void getUsername_returnsDefault_whenNull() {
         properties.getApi().setUsername(null);
-        assertEquals("alamanos-test", service.getUsername());
+        assertEquals("", service.getUsername());
     }
 
     @Test
     void getUsername_returnsDefault_whenBlank() {
         properties.getApi().setUsername("  ");
-        assertEquals("alamanos-test", service.getUsername());
+        assertEquals("", service.getUsername());
     }
 
     @Test
     void getUsername_returnsDefault_whenDefaultsUsed() {
-        assertEquals("alamanos-test", service.getUsername());
+        assertEquals("", service.getUsername());
     }
 
     // --- Auth Token Tests ---
@@ -89,13 +89,13 @@ class ConfigurationServiceTest {
     @Test
     void getAuthToken_returnsDefault_whenNull() {
         properties.getApi().setToken(null);
-        assertEquals("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc", service.getAuthToken());
+        assertEquals("", service.getAuthToken());
     }
 
     @Test
     void getAuthToken_returnsDefault_whenBlank() {
         properties.getApi().setToken("");
-        assertEquals("hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc", service.getAuthToken());
+        assertEquals("", service.getAuthToken());
     }
 
     // --- Refresh Interval Tests ---
