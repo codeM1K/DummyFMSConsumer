@@ -1,0 +1,30 @@
+services:
+  fleet-tracking-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fleet-tracking-consumer
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - OPENREMOTE_API_ENDPOINT=https://fms.pcp.com.gr
+      - OPENREMOTE_API_USERNAME=alamanos-test
+      - OPENREMOTE_API_TOKEN=hw33qKdc9iCfNvcHm6zaDE1v5bJjndVc
+      - OPENREMOTE_REFRESH_REALMS=60
+      - OPENREMOTE_REFRESH_VEHICLES=60
+      - OPENREMOTE_REFRESH_METRICS=1
+      - OPENREMOTE_CONNECTION_TIMEOUT=5000
+      - OPENREMOTE_CONNECTION_ESTABLISHMENT=2000
+      - OPENREMOTE_RETRY_MAX_ATTEMPTS=3
+      - OPENREMOTE_RETRY_INITIAL_DELAY=1000
+      - OPENREMOTE_RETRY_MAX_DELAY=30000
+      - OPENREMOTE_SIMULATION_DEFAULT_CLIENTS=1
+      - OPENREMOTE_SIMULATION_MAX_CLIENTS=100
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3

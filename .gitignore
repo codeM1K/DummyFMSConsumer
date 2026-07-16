@@ -1,0 +1,41 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Vaadin
+node_modules/
+frontend/generated/
+vite.generated.ts
+vite.config.ts
+tsconfig.json
+types.d.ts
+package.json
+package-lock.json
+pnpm-lock.yaml
+webpack.config.js
+webpack.generated.js
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+
+# Build output
+*.jar
+!**/src/**/target/
+
+# Test output
+test_output.txt

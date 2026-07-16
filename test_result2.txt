@@ -1,0 +1,387 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------< com.fms:fleet-tracking-consumer >-------------------
+[INFO] Building Fleet Tracking Data Consumer 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-resources-plugin:3.3.1:resources (default-resources) @ fleet-tracking-consumer ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] >>> vaadin-maven-plugin:24.4.4:prepare-frontend (default) > :configure @ fleet-tracking-consumer >>>
+[INFO] 
+[INFO] --- vaadin-maven-plugin:24.4.4:configure (configure) @ fleet-tracking-consumer ---
+[INFO] Reflections took 526 ms to scan 187 urls, producing 7558 keys and 41453 values
+[INFO] 
+[INFO] <<< vaadin-maven-plugin:24.4.4:prepare-frontend (default) < :configure @ fleet-tracking-consumer <<<
+[INFO] 
+[INFO] 
+[INFO] --- vaadin-maven-plugin:24.4.4:prepare-frontend (default) @ fleet-tracking-consumer ---
+[INFO] Reflections took 264 ms to scan 187 urls, producing 7558 keys and 41453 values
+[INFO] Reflections took 299 ms to scan 187 urls, producing 7558 keys and 41453 values
+[INFO] Reflections took 301 ms to scan 187 urls, producing 7558 keys and 41453 values
+[INFO] Visited 93 classes. Took 113 ms.
+[INFO] Copying frontend resources from jar files ...
+[INFO] Visited 186 resources. Took 125 ms.
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.13.0:compile (default-compile) @ fleet-tracking-consumer ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] >>> vaadin-maven-plugin:24.4.4:build-frontend (default) > :configure @ fleet-tracking-consumer >>>
+[INFO] 
+[INFO] --- vaadin-maven-plugin:24.4.4:configure (configure) @ fleet-tracking-consumer ---
+[INFO] Reflections took 250 ms to scan 187 urls, producing 7558 keys and 41453 values
+[INFO] 
+[INFO] <<< vaadin-maven-plugin:24.4.4:build-frontend (default) < :configure @ fleet-tracking-consumer <<<
+[INFO] 
+[INFO] 
+[INFO] --- vaadin-maven-plugin:24.4.4:build-frontend (default) @ fleet-tracking-consumer ---
+[INFO] Reflections took 239 ms to scan 187 urls, producing 7558 keys and 41453 values
+[INFO] Reflections took 220 ms to scan 187 urls, producing 7558 keys and 41453 values
+[INFO] Scanning classes to find frontend configurations and dependencies...
+[INFO] Visited 8315 classes. Took 2663 ms.
+[INFO] Checking if a production mode bundle build is needed
+[INFO] A production mode bundle build is not needed
+[INFO] Copying frontend resources from jar files ...
+[INFO] Visited 186 resources. Took 93 ms.
+[INFO] Reflections took 210 ms to scan 187 urls, producing 7558 keys and 41453 values
+[INFO] Scanning classes to find frontend configurations and dependencies...
+[INFO] Visited 8315 classes. Took 1786 ms.
+[INFO] Build frontend completed in 5427 ms.
+[INFO] 
+[INFO] --- maven-resources-plugin:3.3.1:testResources (default-testResources) @ fleet-tracking-consumer ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.13.0:testCompile (default-testCompile) @ fleet-tracking-consumer ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 32 source files with javac [debug parameters release 17] to target\test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:3.2.5:test (default-test) @ fleet-tracking-consumer ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.fms.consumer.service.MetricsUpdateRatePropertyTest
+14:04:25.955 [main] INFO com.fms.consumer.service.MetricsCollector -- MetricsCollector initialized with 1-second rate calculation
+14:04:41.151 [main] INFO com.fms.consumer.service.MetricsCollector -- Shutting down MetricsCollector scheduler
+timestamp = 2026-07-15T14:04:41.158249400, MetricsUpdateRatePropertyTest:updatesPerSecond dropsToZeroAfterNoUpdates = 
+                              |-----------------------jqwik-----------------------
+tries = 5                     | # of calls to property
+checks = 5                    | # of not rejected calls
+generation = RANDOMIZED       | parameters are randomly generated
+after-failure = SAMPLE_FIRST  | try previously failed sample, then previous seed
+when-fixed-seed = ALLOW       | fixing the random seed is allowed
+edge-cases#mode = MIXIN       | edge cases are mixed in
+edge-cases#total = 4          | # of all combined edge cases
+edge-cases#tried = 0          | # of edge cases tried in current run
+seed = -438747980419209193    | random seed to reproduce generated values
+
+
+14:04:41.160 [main] INFO com.fms.consumer.service.MetricsCollector -- MetricsCollector initialized with 1-second rate calculation
+14:04:47.214 [main] INFO com.fms.consumer.service.MetricsCollector -- Shutting down MetricsCollector scheduler
+timestamp = 2026-07-15T14:04:47.220352100, MetricsUpdateRatePropertyTest:updatesPerSecond reflectsCountAfterSchedulerRuns = 
+  org.opentest4j.AssertionFailedError:
+    After scheduler runs, updatesPerSecond must equal the count of updates made in the previous window. Expected 2 but got 0.0 ==> expected: <2.0> but was: <0.0>
+
+                              |-----------------------jqwik-----------------------
+tries = 2                     | # of calls to property
+checks = 2                    | # of not rejected calls
+generation = RANDOMIZED       | parameters are randomly generated
+after-failure = SAMPLE_FIRST  | try previously failed sample, then previous seed
+when-fixed-seed = ALLOW       | fixing the random seed is allowed
+edge-cases#mode = MIXIN       | edge cases are mixed in
+edge-cases#total = 4          | # of all combined edge cases
+edge-cases#tried = 0          | # of edge cases tried in current run
+seed = -4179935119362948510   | random seed to reproduce generated values
+
+Shrunk Sample (1 steps)
+-----------------------
+  updateCount: 2
+
+Original Sample
+---------------
+  updateCount: 28
+
+  Original Error
+  --------------
+  org.opentest4j.AssertionFailedError:
+    After scheduler runs, updatesPerSecond must equal the count of updates made in the previous window. Expected 28 but got 0.0 ==> expected: <28.0> but was: <0.0>
+
+
+14:04:47.244 [main] INFO com.fms.consumer.service.MetricsCollector -- MetricsCollector initialized with 1-second rate calculation
+14:04:53.281 [main] INFO com.fms.consumer.service.MetricsCollector -- Shutting down MetricsCollector scheduler
+timestamp = 2026-07-15T14:04:53.283130200, MetricsUpdateRatePropertyTest:totalUpdatesReceived persistsAcrossWindows = 
+  org.opentest4j.AssertionFailedError:
+    getTotalUpdatesReceived() must accumulate across windows. Expected 2 but got 79 ==> expected: <2> but was: <79>
+
+                              |-----------------------jqwik-----------------------
+tries = 2                     | # of calls to property
+checks = 2                    | # of not rejected calls
+generation = RANDOMIZED       | parameters are randomly generated
+after-failure = SAMPLE_FIRST  | try previously failed sample, then previous seed
+when-fixed-seed = ALLOW       | fixing the random seed is allowed
+edge-cases#mode = MIXIN       | edge cases are mixed in
+edge-cases#total = 8          | # of all combined edge cases
+edge-cases#tried = 0          | # of edge cases tried in current run
+seed = 3217426241988513702    | random seed to reproduce generated values
+
+Shrunk Sample (2 steps)
+-----------------------
+  firstBatch: 1
+  secondBatch: 1
+
+Original Sample
+---------------
+  firstBatch: 11
+  secondBatch: 19
+
+  Original Error
+  --------------
+  org.opentest4j.AssertionFailedError:
+    getTotalUpdatesReceived() must accumulate across windows. Expected 30 but got 57 ==> expected: <30> but was: <57>
+
+
+14:04:53.286 [main] INFO com.fms.consumer.service.MetricsCollector -- MetricsCollector initialized with 1-second rate calculation
+14:04:53.294 [main] INFO com.fms.consumer.service.MetricsCollector -- Shutting down MetricsCollector scheduler
+timestamp = 2026-07-15T14:04:53.294991500, MetricsUpdateRatePropertyTest:totalUpdatesReceived accumulatesAllCalls = 
+  org.opentest4j.AssertionFailedError:
+    getTotalUpdatesReceived() must equal the number of recordLocationUpdate() calls, but got 49 for 1 calls ==> expected: <1> but was: <49>
+
+                              |-----------------------jqwik-----------------------
+tries = 2                     | # of calls to property
+checks = 2                    | # of not rejected calls
+generation = RANDOMIZED       | parameters are randomly generated
+after-failure = SAMPLE_FIRST  | try previously failed sample, then previous seed
+when-fixed-seed = ALLOW       | fixing the random seed is allowed
+edge-cases#mode = MIXIN       | edge cases are mixed in
+edge-cases#total = 4          | # of all combined edge cases
+edge-cases#tried = 0          | # of edge cases tried in current run
+seed = 1289864960326064988    | random seed to reproduce generated values
+
+Shrunk Sample (1 steps)
+-----------------------
+  updateCount: 1
+
+Original Sample
+---------------
+  updateCount: 31
+
+  Original Error
+  --------------
+  org.opentest4j.AssertionFailedError:
+    getTotalUpdatesReceived() must equal the number of recordLocationUpdate() calls, but got 48 for 31 calls ==> expected: <31> but was: <48>
+
+
+[ERROR] Tests run: 4, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 27.41 s <<< FAILURE! -- in com.fms.consumer.service.MetricsUpdateRatePropertyTest
+[ERROR] com.fms.consumer.service.MetricsUpdateRatePropertyTest.updatesPerSecond reflectsCountAfterSchedulerRuns -- Time elapsed: 6.081 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: After scheduler runs, updatesPerSecond must equal the count of updates made in the previous window. Expected 2 but got 0.0 ==> expected: <2.0> but was: <0.0>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:86)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1024)
+	at com.fms.consumer.service.MetricsUpdateRatePropertyTest.updatesPerSecond_reflectsCountAfterSchedulerRuns(MetricsUpdateRatePropertyTest.java:88)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$1(CheckedPropertyFactory.java:84)
+	at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$2(CheckedPropertyFactory.java:91)
+	at net.jqwik.engine.properties.CheckedFunction.execute(CheckedFunction.java:17)
+	at net.jqwik.api.lifecycle.AroundTryHook.lambda$static$0(AroundTryHook.java:57)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+	at net.jqwik.engine.hooks.lifecycle.TryLifecycleMethodsHook.aroundTry(TryLifecycleMethodsHook.java:56)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+	at net.jqwik.engine.hooks.lifecycle.BeforeTryMembersHook.aroundTry(BeforeTryMembersHook.java:69)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+	at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createTryExecutor$0(CheckedPropertyFactory.java:60)
+	at net.jqwik.engine.execution.lifecycle.AroundTryLifecycle.execute(AroundTryLifecycle.java:23)
+	at net.jqwik.engine.properties.GenericProperty.lambda$createFalsifier$1(GenericProperty.java:229)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$shrink$0(PropertyShrinker.java:55)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$shrinkAsLongAsSampleImproves$6(PropertyShrinker.java:122)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.lambda$falsify$5(AbstractSampleShrinker.java:91)
+	at java.base/java.util.HashMap.computeIfAbsent(HashMap.java:1228)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.falsify(AbstractSampleShrinker.java:91)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.lambda$shrink$2(AbstractSampleShrinker.java:53)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:212)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:194)
+	at java.base/java.util.stream.ReferencePipeline$15$1.accept(ReferencePipeline.java:556)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:212)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:212)
+	at java.base/java.util.stream.StreamSpliterators$WrappingSpliterator.tryAdvance(StreamSpliterators.java:300)
+	at net.jqwik.engine.support.StreamConcatenation$ConcatSpliterator.tryAdvance(StreamConcatenation.java:302)
+	at java.base/java.util.stream.ReferencePipeline.forEachWithCancel(ReferencePipeline.java:144)
+	at java.base/java.util.stream.AbstractPipeline.copyIntoWithCancel(AbstractPipeline.java:574)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:560)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:546)
+	at java.base/java.util.stream.FindOps$FindOp.evaluateSequential(FindOps.java:150)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+	at java.base/java.util.stream.ReferencePipeline.findAny(ReferencePipeline.java:667)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.shrink(AbstractSampleShrinker.java:63)
+	at net.jqwik.engine.properties.shrinking.OneAfterTheOtherParameterShrinker.shrinkSingleParameter(OneAfterTheOtherParameterShrinker.java:43)
+	at net.jqwik.engine.properties.shrinking.OneAfterTheOtherParameterShrinker.shrink(OneAfterTheOtherParameterShrinker.java:25)
+	at net.jqwik.engine.properties.shrinking.ShrinkingAlgorithm.shrinkOneParameterAfterTheOther(ShrinkingAlgorithm.java:52)
+	at net.jqwik.engine.properties.shrinking.ShrinkingAlgorithm.shrink(ShrinkingAlgorithm.java:32)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.shrinkAsLongAsSampleImproves(PropertyShrinker.java:135)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$shrink$3(PropertyShrinker.java:87)
+	at net.jqwik.engine.execution.lifecycle.CurrentTestDescriptor.runWithDescriptor(CurrentTestDescriptor.java:17)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$withTimeout$4(PropertyShrinker.java:103)
+	at net.jqwik.engine.execution.lifecycle.CurrentDomainContext.runWithContext(CurrentDomainContext.java:28)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$withTimeout$5(PropertyShrinker.java:101)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1491)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:2073)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2035)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+
+[ERROR] com.fms.consumer.service.MetricsUpdateRatePropertyTest.totalUpdatesReceived persistsAcrossWindows -- Time elapsed: 6.041 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: getTotalUpdatesReceived() must accumulate across windows. Expected 2 but got 79 ==> expected: <2> but was: <79>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:166)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:664)
+	at com.fms.consumer.service.MetricsUpdateRatePropertyTest.totalUpdatesReceived_persistsAcrossWindows(MetricsUpdateRatePropertyTest.java:153)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$1(CheckedPropertyFactory.java:84)
+	at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$2(CheckedPropertyFactory.java:91)
+	at net.jqwik.engine.properties.CheckedFunction.execute(CheckedFunction.java:17)
+	at net.jqwik.api.lifecycle.AroundTryHook.lambda$static$0(AroundTryHook.java:57)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+	at net.jqwik.engine.hooks.lifecycle.TryLifecycleMethodsHook.aroundTry(TryLifecycleMethodsHook.java:56)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+	at net.jqwik.engine.hooks.lifecycle.BeforeTryMembersHook.aroundTry(BeforeTryMembersHook.java:69)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+	at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createTryExecutor$0(CheckedPropertyFactory.java:60)
+	at net.jqwik.engine.execution.lifecycle.AroundTryLifecycle.execute(AroundTryLifecycle.java:23)
+	at net.jqwik.engine.properties.GenericProperty.lambda$createFalsifier$1(GenericProperty.java:229)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$shrink$0(PropertyShrinker.java:55)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$shrinkAsLongAsSampleImproves$6(PropertyShrinker.java:122)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.lambda$falsify$5(AbstractSampleShrinker.java:91)
+	at java.base/java.util.HashMap.computeIfAbsent(HashMap.java:1228)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.falsify(AbstractSampleShrinker.java:91)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.lambda$shrink$2(AbstractSampleShrinker.java:53)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:212)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:194)
+	at java.base/java.util.stream.ReferencePipeline$15$1.accept(ReferencePipeline.java:556)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:212)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:212)
+	at java.base/java.util.stream.StreamSpliterators$WrappingSpliterator.tryAdvance(StreamSpliterators.java:300)
+	at net.jqwik.engine.support.StreamConcatenation$ConcatSpliterator.tryAdvance(StreamConcatenation.java:302)
+	at java.base/java.util.stream.ReferencePipeline.forEachWithCancel(ReferencePipeline.java:144)
+	at java.base/java.util.stream.AbstractPipeline.copyIntoWithCancel(AbstractPipeline.java:574)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:560)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:546)
+	at java.base/java.util.stream.FindOps$FindOp.evaluateSequential(FindOps.java:150)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+	at java.base/java.util.stream.ReferencePipeline.findAny(ReferencePipeline.java:667)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.shrink(AbstractSampleShrinker.java:63)
+	at net.jqwik.engine.properties.shrinking.OneAfterTheOtherParameterShrinker.shrinkSingleParameter(OneAfterTheOtherParameterShrinker.java:43)
+	at net.jqwik.engine.properties.shrinking.OneAfterTheOtherParameterShrinker.shrink(OneAfterTheOtherParameterShrinker.java:25)
+	at net.jqwik.engine.properties.shrinking.ShrinkingAlgorithm.shrinkOneParameterAfterTheOther(ShrinkingAlgorithm.java:52)
+	at net.jqwik.engine.properties.shrinking.ShrinkingAlgorithm.shrink(ShrinkingAlgorithm.java:32)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.shrinkAsLongAsSampleImproves(PropertyShrinker.java:135)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$shrink$3(PropertyShrinker.java:87)
+	at net.jqwik.engine.execution.lifecycle.CurrentTestDescriptor.runWithDescriptor(CurrentTestDescriptor.java:17)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$withTimeout$4(PropertyShrinker.java:103)
+	at net.jqwik.engine.execution.lifecycle.CurrentDomainContext.runWithContext(CurrentDomainContext.java:28)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$withTimeout$5(PropertyShrinker.java:101)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1491)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:2073)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2035)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+
+[ERROR] com.fms.consumer.service.MetricsUpdateRatePropertyTest.totalUpdatesReceived accumulatesAllCalls -- Time elapsed: 0.011 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: getTotalUpdatesReceived() must equal the number of recordLocationUpdate() calls, but got 49 for 1 calls ==> expected: <1> but was: <49>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:166)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:664)
+	at com.fms.consumer.service.MetricsUpdateRatePropertyTest.totalUpdatesReceived_accumulatesAllCalls(MetricsUpdateRatePropertyTest.java:59)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$1(CheckedPropertyFactory.java:84)
+	at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createRawFunction$2(CheckedPropertyFactory.java:91)
+	at net.jqwik.engine.properties.CheckedFunction.execute(CheckedFunction.java:17)
+	at net.jqwik.api.lifecycle.AroundTryHook.lambda$static$0(AroundTryHook.java:57)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+	at net.jqwik.engine.hooks.lifecycle.TryLifecycleMethodsHook.aroundTry(TryLifecycleMethodsHook.java:56)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$2(HookSupport.java:48)
+	at net.jqwik.engine.hooks.lifecycle.BeforeTryMembersHook.aroundTry(BeforeTryMembersHook.java:69)
+	at net.jqwik.engine.execution.lifecycle.HookSupport.lambda$wrap$3(HookSupport.java:53)
+	at net.jqwik.engine.execution.CheckedPropertyFactory.lambda$createTryExecutor$0(CheckedPropertyFactory.java:60)
+	at net.jqwik.engine.execution.lifecycle.AroundTryLifecycle.execute(AroundTryLifecycle.java:23)
+	at net.jqwik.engine.properties.GenericProperty.lambda$createFalsifier$1(GenericProperty.java:229)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$shrink$0(PropertyShrinker.java:55)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$shrinkAsLongAsSampleImproves$6(PropertyShrinker.java:122)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.lambda$falsify$5(AbstractSampleShrinker.java:91)
+	at java.base/java.util.HashMap.computeIfAbsent(HashMap.java:1228)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.falsify(AbstractSampleShrinker.java:91)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.lambda$shrink$2(AbstractSampleShrinker.java:53)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:212)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:194)
+	at java.base/java.util.stream.ReferencePipeline$15$1.accept(ReferencePipeline.java:556)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:212)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:212)
+	at java.base/java.util.stream.StreamSpliterators$WrappingSpliterator.tryAdvance(StreamSpliterators.java:300)
+	at net.jqwik.engine.support.StreamConcatenation$ConcatSpliterator.tryAdvance(StreamConcatenation.java:302)
+	at java.base/java.util.stream.ReferencePipeline.forEachWithCancel(ReferencePipeline.java:144)
+	at java.base/java.util.stream.AbstractPipeline.copyIntoWithCancel(AbstractPipeline.java:574)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:560)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:546)
+	at java.base/java.util.stream.FindOps$FindOp.evaluateSequential(FindOps.java:150)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+	at java.base/java.util.stream.ReferencePipeline.findAny(ReferencePipeline.java:667)
+	at net.jqwik.engine.properties.shrinking.AbstractSampleShrinker.shrink(AbstractSampleShrinker.java:63)
+	at net.jqwik.engine.properties.shrinking.OneAfterTheOtherParameterShrinker.shrinkSingleParameter(OneAfterTheOtherParameterShrinker.java:43)
+	at net.jqwik.engine.properties.shrinking.OneAfterTheOtherParameterShrinker.shrink(OneAfterTheOtherParameterShrinker.java:25)
+	at net.jqwik.engine.properties.shrinking.ShrinkingAlgorithm.shrinkOneParameterAfterTheOther(ShrinkingAlgorithm.java:52)
+	at net.jqwik.engine.properties.shrinking.ShrinkingAlgorithm.shrink(ShrinkingAlgorithm.java:32)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.shrinkAsLongAsSampleImproves(PropertyShrinker.java:135)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$shrink$3(PropertyShrinker.java:87)
+	at net.jqwik.engine.execution.lifecycle.CurrentTestDescriptor.runWithDescriptor(CurrentTestDescriptor.java:17)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$withTimeout$4(PropertyShrinker.java:103)
+	at net.jqwik.engine.execution.lifecycle.CurrentDomainContext.runWithContext(CurrentDomainContext.java:28)
+	at net.jqwik.engine.properties.shrinking.PropertyShrinker.lambda$withTimeout$5(PropertyShrinker.java:101)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:507)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1491)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:2073)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:2035)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:187)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   MetricsUpdateRatePropertyTest.totalUpdatesReceived_accumulatesAllCalls:59 getTotalUpdatesReceived() must equal the number of recordLocationUpdate() calls, but got 49 for 1 calls ==> expected: <1> but was: <49>
+[ERROR]   MetricsUpdateRatePropertyTest.totalUpdatesReceived_persistsAcrossWindows:153 getTotalUpdatesReceived() must accumulate across windows. Expected 2 but got 79 ==> expected: <2> but was: <79>
+[ERROR]   MetricsUpdateRatePropertyTest.updatesPerSecond_reflectsCountAfterSchedulerRuns:88 After scheduler runs, updatesPerSecond must equal the count of updates made in the previous window. Expected 2 but got 0.0 ==> expected: <2.0> but was: <0.0>
+[INFO] 
+[ERROR] Tests run: 4, Failures: 3, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  40.549 s
+[INFO] Finished at: 2026-07-15T14:04:53+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.2.5:test (default-test) on project fleet-tracking-consumer: There are test failures.
+[ERROR] 
+[ERROR] Please refer to C:\Users\Aris\Desktop\DummyFMSConsumer\target\surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
