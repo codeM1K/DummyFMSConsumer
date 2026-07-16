@@ -160,6 +160,39 @@ public class ConsumptionOrchestrator {
     }
 
     /**
+     * Stops ALL controlled mode sessions regardless of vehicle selection.
+     * Transitions to IDLE mode.
+     */
+    public void stopAllControlledSessions() {
+        log.info("[{}] Stopping all Controlled Mode sessions", Instant.now());
+
+        List<String> keysToRemove = activeSessions.entrySet().stream()
+                .filter(entry -> entry.getValue().getMode() == ConsumptionMode.CONTROLLED)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        for (String key : keysToRemove) {
+            ConsumptionSession session = activeSessions.remove(key);
+            if (session != null) {
+                session.deactivate();
+                locationPollingService.unsubscribeVehicle(session.getVehicle().getId());
+                metricsCollector.recordConnectionChange(-1);
+                metricsCollector.recordVehicleInactive(session.getVehicle().getId());
+                if (session.getVehicle().getRealmId() != null) {
+                    metricsCollector.recordRealmInactive(session.getVehicle().getRealmId());
+                }
+            }
+        }
+
+        if (activeSessions.isEmpty()) {
+            locationPollingService.stop();
+        }
+
+        currentMode = ConsumptionMode.IDLE;
+        log.info("[{}] All Controlled Mode sessions stopped. Removed {} sessions", Instant.now(), keysToRemove.size());
+    }
+
+    /**
      * Stops Controlled Mode for the specified set of vehicles.
      * Closes sessions only for the given vehicles. If no sessions remain,
      * transitions to IDLE mode.

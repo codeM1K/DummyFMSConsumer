@@ -166,8 +166,7 @@ public class ConsumptionControlPanel extends VerticalLayout {
         if (orchestrator == null) {
             return;
         }
-        Set<Vehicle> selectedVehicles = getSelectedVehicles();
-        orchestrator.stopControlledMode(selectedVehicles);
+        orchestrator.stopAllControlledSessions();
         refreshStatus();
     }
 
