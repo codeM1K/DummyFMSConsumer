@@ -25,14 +25,14 @@ import static org.mockito.Mockito.*;
  */
 class LocationDataConsumptionRandomModePropertyTest {
 
-    private WebSocketClientPool clientPool;
+    private WebSocketClientPool clientPool; private LocationPollingService locationPollingService;
     private MetricsCollector metricsCollector;
     private DiscoveryService discoveryService;
     private ConfigurationService configService;
 
     @BeforeProperty
     void setUp() {
-        clientPool = mock(WebSocketClientPool.class);
+        clientPool = mock(WebSocketClientPool.class); locationPollingService = mock(LocationPollingService.class);
         metricsCollector = mock(MetricsCollector.class);
         discoveryService = mock(DiscoveryService.class);
         configService = mock(ConfigurationService.class);
@@ -43,12 +43,12 @@ class LocationDataConsumptionRandomModePropertyTest {
     /**
      * For any non-empty set of vehicles discovered across realms, when Random Mode
      * is started, every vehicle that ends up in an active session SHALL have a
-     * corresponding WebSocket connection created via the client pool.
+     * corresponding location polling subscription created.
      *
      * <p><b>Validates: Requirements 4.3</b></p>
      */
     @Property(tries = 100)
-    void randomMode_createsWebSocketConnectionForEachSelectedVehicle(
+    void randomMode_subscribesEachSelectedVehicleForLocationPolling(
             @ForAll("vehicleRealms") List<Realm> realms) {
 
         // Set up discovery to return the generated realms
@@ -58,18 +58,17 @@ class LocationDataConsumptionRandomModePropertyTest {
                     .thenReturn(realm.getVehicles());
         }
 
-        ConsumptionOrchestrator orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        ConsumptionOrchestrator orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
 
         orchestrator.startRandomMode();
 
-        // For every active session, verify that createConnection was called for that vehicle
+        // For every active session, verify that subscribeVehicle was called for that vehicle
         Map<String, ConsumptionSession> sessions = orchestrator.getActiveSessions();
 
         for (ConsumptionSession session : sessions.values()) {
             Vehicle vehicle = session.getVehicle();
-            verify(clientPool, atLeastOnce()).createConnection(
-                    eq(vehicle), eq(session.getClientId()));
+            verify(locationPollingService, atLeastOnce()).subscribeVehicle(
+                    eq(vehicle.getId()), eq(session.getClientId()));
         }
     }
 
@@ -89,8 +88,7 @@ class LocationDataConsumptionRandomModePropertyTest {
                     .thenReturn(realm.getVehicles());
         }
 
-        ConsumptionOrchestrator orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        ConsumptionOrchestrator orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
 
         orchestrator.startRandomMode();
 
@@ -120,8 +118,7 @@ class LocationDataConsumptionRandomModePropertyTest {
                     .thenReturn(realm.getVehicles());
         }
 
-        ConsumptionOrchestrator orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        ConsumptionOrchestrator orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
 
         orchestrator.startRandomMode();
 
@@ -166,8 +163,7 @@ class LocationDataConsumptionRandomModePropertyTest {
             }
         }
 
-        ConsumptionOrchestrator orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        ConsumptionOrchestrator orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
 
         orchestrator.startRandomMode();
 

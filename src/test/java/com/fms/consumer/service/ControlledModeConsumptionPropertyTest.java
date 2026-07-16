@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
  */
 class ControlledModeConsumptionPropertyTest {
 
-    private WebSocketClientPool clientPool;
+    private WebSocketClientPool clientPool; private LocationPollingService locationPollingService;
     private MetricsCollector metricsCollector;
     private DiscoveryService discoveryService;
     private ConfigurationService configService;
@@ -50,7 +50,7 @@ class ControlledModeConsumptionPropertyTest {
 
     @BeforeTry
     void setUpTry() {
-        clientPool = mock(WebSocketClientPool.class);
+        clientPool = mock(WebSocketClientPool.class); locationPollingService = mock(LocationPollingService.class);
         discoveryService = mock(DiscoveryService.class);
         configService = mock(ConfigurationService.class);
 
@@ -58,8 +58,7 @@ class ControlledModeConsumptionPropertyTest {
 
         metricsCollector.reset();
 
-        orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
     }
 
     /**
@@ -111,23 +110,23 @@ class ControlledModeConsumptionPropertyTest {
 
     /**
      * For any set of vehicles started in Controlled Mode, the orchestrator SHALL
-     * invoke clientPool.createConnection for each vehicle to establish WebSocket connections.
+     * invoke locationPollingService.subscribeVehicle for each vehicle to subscribe for polling.
      *
      * <p><b>Validates: Requirements 5.5</b></p>
      */
     @Property(tries = 100)
-    void startControlledMode_createsWebSocketConnectionForEachVehicle(
+    void startControlledMode_subscribesEachVehicleForPolling(
             @ForAll("vehicleSets") Set<Vehicle> vehicles) {
 
         orchestrator.startControlledMode(vehicles);
 
-        // Verify createConnection was called once per vehicle
+        // Verify subscribeVehicle was called once per vehicle
         for (Vehicle vehicle : vehicles) {
-            verify(clientPool).createConnection(eq(vehicle), eq("client_1"));
+            verify(locationPollingService).subscribeVehicle(eq(vehicle.getId()), eq("client_1"));
         }
 
         // Total invocations should equal the number of vehicles
-        verify(clientPool, times(vehicles.size())).createConnection(any(Vehicle.class), anyString());
+        verify(locationPollingService, times(vehicles.size())).subscribeVehicle(anyString(), anyString());
     }
 
     /**

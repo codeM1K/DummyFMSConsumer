@@ -40,6 +40,9 @@ class ErrorScenariosIntegrationTest {
     private WebSocketClientPool clientPool;
 
     @Mock
+    private LocationPollingService locationPollingService;
+
+    @Mock
     private DiscoveryService discoveryService;
 
     @Mock
@@ -60,7 +63,7 @@ class ErrorScenariosIntegrationTest {
 
         configService = new ConfigurationService(properties);
         metricsCollector = new MetricsCollector();
-        orchestrator = new ConsumptionOrchestrator(clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
         authenticationService = new AuthenticationService(configService, restClient);
     }
 
@@ -96,8 +99,8 @@ class ErrorScenariosIntegrationTest {
         assertTrue(orchestrator.getSuspendedSessions().isEmpty(),
                 "No sessions should remain suspended after recovery");
 
-        // Verify WebSocket connections were re-created for each vehicle
-        verify(clientPool, atLeast(3)).createConnection(any(Vehicle.class), anyString());
+        // Verify polling subscriptions were re-created for each vehicle
+        verify(locationPollingService, atLeast(3)).subscribeVehicle(anyString(), anyString());
     }
 
     @Test
@@ -124,20 +127,21 @@ class ErrorScenariosIntegrationTest {
     }
 
     @Test
-    @DisplayName("Network outage: connections are closed during suspension")
-    void networkOutage_connectionsClosed_duringSuspension() {
+    @DisplayName("Network outage: polling is stopped during suspension")
+    void networkOutage_pollingStopped_duringSuspension() {
         // Arrange
         Vehicle v1 = new Vehicle("v1", "Truck 1", "realm-A", VehicleStatus.ACTIVE);
         orchestrator.startControlledMode(Set.of(v1));
 
         // Reset invocation count to track only suspension calls
-        reset(clientPool);
+        reset(locationPollingService);
 
         // Act: Suspend
         orchestrator.suspendAllSessions();
 
-        // Assert: Connection was closed for the vehicle
-        verify(clientPool).closeConnection(eq("v1"), eq("client_1"));
+        // Assert: Polling was stopped and all vehicles unsubscribed
+        verify(locationPollingService).stop();
+        verify(locationPollingService).unsubscribeAll();
     }
 
     // --- 2. Authentication Failure Handling (Req 12.4) ---
@@ -259,9 +263,9 @@ class ErrorScenariosIntegrationTest {
         orchestrator.startControlledMode(vehicles);
         orchestrator.suspendAllSessions();
 
-        // Make v2's reconnection fail
+        // Make v2's re-subscription fail
         doThrow(new RuntimeException("Cannot reach server for v2"))
-                .when(clientPool).createConnection(eq(v2), eq("client_1"));
+                .when(locationPollingService).subscribeVehicle(eq("v2"), eq("client_1"));
 
         // Act: Resume
         orchestrator.resumeAllSessions();
@@ -297,19 +301,19 @@ class ErrorScenariosIntegrationTest {
     }
 
     @Test
-    @DisplayName("WebSocket reconnection: connection failure during session creation triggers retry")
-    void webSocketReconnection_connectionFailureDuringCreation_triggersRetry() {
-        // Arrange: Make connection creation fail for one vehicle
+    @DisplayName("Polling subscription failure during session creation triggers retry")
+    void pollingSubscription_failureDuringCreation_triggersRetry() {
+        // Arrange: Make subscription fail for one vehicle
         Vehicle v1 = new Vehicle("v1", "Truck 1", "realm-A", VehicleStatus.ACTIVE);
-        doThrow(new RuntimeException("Connection refused"))
-                .when(clientPool).createConnection(eq(v1), eq("client_1"));
+        doThrow(new RuntimeException("Subscription failed"))
+                .when(locationPollingService).subscribeVehicle(eq("v1"), eq("client_1"));
 
-        // Act: Start controlled mode (connection will fail)
+        // Act: Start controlled mode (subscription will fail)
         orchestrator.startControlledMode(Set.of(v1));
 
-        // Assert: Session is created but may have failed connection - session stays for retry
+        // Assert: Session is created but may have failed subscription - session stays for retry
         assertTrue(orchestrator.getActiveSessions().containsKey("v1_client_1"),
-                "Session should be kept even after initial connection failure");
+                "Session should be kept even after initial subscription failure");
     }
 
     @Test
@@ -337,9 +341,9 @@ class ErrorScenariosIntegrationTest {
         orchestrator.suspendAllSessions();
         assertTrue(orchestrator.getSuspendedSessions().size() > 0);
 
-        // Partial recovery: v2 fails to reconnect
+        // Partial recovery: v2 fails to re-subscribe
         doThrow(new RuntimeException("Still unreachable"))
-                .when(clientPool).createConnection(eq(v2), eq("client_1"));
+                .when(locationPollingService).subscribeVehicle(eq("v2"), eq("client_1"));
 
         orchestrator.resumeAllSessions();
 

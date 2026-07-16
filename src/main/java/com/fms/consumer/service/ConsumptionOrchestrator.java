@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 
 /**
  * Coordinates consumption activities across random and controlled modes.
- * Manages WebSocket connections for selected vehicles, supports multi-client
- * simulation, and integrates with MetricsCollector for metrics tracking.
+ * Uses REST polling (via LocationPollingService) for location data since
+ * the WebSocket endpoint is not available.
  *
  * <p>Implements session resumption after network recovery (Req 12.3) and
  * isolated failure handling so one vehicle's failure does not affect others (Req 12.5).</p>
@@ -29,6 +29,7 @@ public class ConsumptionOrchestrator {
     private static final Logger log = LoggerFactory.getLogger(ConsumptionOrchestrator.class);
 
     private final WebSocketClientPool clientPool;
+    private final LocationPollingService locationPollingService;
     private final MetricsCollector metricsCollector;
     private final DiscoveryService discoveryService;
     private final ConfigurationService configService;
@@ -43,10 +44,12 @@ public class ConsumptionOrchestrator {
     private volatile ConsumptionMode currentMode = ConsumptionMode.IDLE;
 
     public ConsumptionOrchestrator(WebSocketClientPool clientPool,
+                                   LocationPollingService locationPollingService,
                                    MetricsCollector metricsCollector,
                                    DiscoveryService discoveryService,
                                    ConfigurationService configService) {
         this.clientPool = clientPool;
+        this.locationPollingService = locationPollingService;
         this.metricsCollector = metricsCollector;
         this.discoveryService = discoveryService;
         this.configService = configService;
@@ -106,7 +109,7 @@ public class ConsumptionOrchestrator {
             ConsumptionSession session = activeSessions.remove(key);
             if (session != null) {
                 session.deactivate();
-                clientPool.closeConnection(session.getVehicle().getId(), session.getClientId());
+                locationPollingService.unsubscribeVehicle(session.getVehicle().getId());
                 metricsCollector.recordConnectionChange(-1);
                 metricsCollector.recordVehicleInactive(session.getVehicle().getId());
                 if (session.getVehicle().getRealmId() != null) {
@@ -114,6 +117,11 @@ public class ConsumptionOrchestrator {
                 }
                 log.debug("[{}] Closed session: {}", Instant.now(), key);
             }
+        }
+
+        // Stop polling if no more sessions
+        if (activeSessions.isEmpty()) {
+            locationPollingService.stop();
         }
 
         randomModeActive = false;
@@ -180,7 +188,7 @@ public class ConsumptionOrchestrator {
             ConsumptionSession session = activeSessions.remove(key);
             if (session != null) {
                 session.deactivate();
-                clientPool.closeConnection(session.getVehicle().getId(), session.getClientId());
+                locationPollingService.unsubscribeVehicle(session.getVehicle().getId());
                 metricsCollector.recordConnectionChange(-1);
                 metricsCollector.recordVehicleInactive(session.getVehicle().getId());
                 if (session.getVehicle().getRealmId() != null) {
@@ -190,9 +198,10 @@ public class ConsumptionOrchestrator {
             }
         }
 
-        // If no sessions remain, transition to IDLE
+        // If no sessions remain, transition to IDLE and stop polling
         if (activeSessions.isEmpty()) {
             currentMode = ConsumptionMode.IDLE;
+            locationPollingService.stop();
             log.info("[{}] No active sessions remain. Mode set to IDLE", Instant.now());
         }
 
@@ -266,7 +275,7 @@ public class ConsumptionOrchestrator {
 
     /**
      * Suspends all active sessions due to network outage.
-     * Moves sessions to suspended state and closes their connections.
+     * Moves sessions to suspended state and stops polling.
      * Sessions can be resumed later via {@link #resumeAllSessions()}.
      */
     public void suspendAllSessions() {
@@ -275,15 +284,11 @@ public class ConsumptionOrchestrator {
 
         for (Map.Entry<String, ConsumptionSession> entry : activeSessions.entrySet()) {
             suspendedSessions.put(entry.getKey(), entry.getValue());
-            try {
-                clientPool.closeConnection(
-                        entry.getValue().getVehicle().getId(),
-                        entry.getValue().getClientId());
-            } catch (Exception e) {
-                log.warn("[{}] Error closing connection during suspension for session '{}': {}",
-                        Instant.now(), entry.getKey(), e.getMessage());
-            }
         }
+
+        // Stop polling and unsubscribe all
+        locationPollingService.stop();
+        locationPollingService.unsubscribeAll();
 
         log.info("[{}] All sessions suspended. Suspended count: {}",
                 Instant.now(), suspendedSessions.size());
@@ -368,7 +373,8 @@ public class ConsumptionOrchestrator {
 
     /**
      * Starts a session for a single vehicle/client pair with isolated failure handling.
-     * If the connection fails for this vehicle, it is logged and does not affect other vehicles (Req 12.5).
+     * Subscribes the vehicle for location polling instead of opening a WebSocket connection.
+     * If subscription fails for this vehicle, it is logged and does not affect other vehicles (Req 12.5).
      *
      * @param vehicle the vehicle to create a session for
      * @param clientId the client identifier
@@ -386,8 +392,9 @@ public class ConsumptionOrchestrator {
         activeSessions.put(sessionKey, session);
 
         try {
-            // Create WebSocket connection - isolated per vehicle
-            clientPool.createConnection(vehicle, clientId);
+            // Subscribe for location data via REST polling (WebSocket endpoint not available)
+            locationPollingService.subscribeVehicle(vehicle.getId(), clientId);
+            locationPollingService.start();
             metricsCollector.recordConnectionChange(1);
             metricsCollector.recordVehicleActive(vehicle.getId());
             if (vehicle.getRealmId() != null) {
@@ -406,7 +413,7 @@ public class ConsumptionOrchestrator {
     }
 
     /**
-     * Resumes a single session by re-establishing its WebSocket connection.
+     * Resumes a single session by re-subscribing for location polling.
      *
      * @param session the session to resume
      */
@@ -417,7 +424,8 @@ public class ConsumptionOrchestrator {
         log.info("[{}] Resuming session for vehicle '{}' (client: '{}')",
                 Instant.now(), vehicle.getId(), clientId);
 
-        clientPool.createConnection(vehicle, clientId);
+        locationPollingService.subscribeVehicle(vehicle.getId(), clientId);
+        locationPollingService.start();
         metricsCollector.recordConnectionChange(1);
         metricsCollector.recordVehicleActive(vehicle.getId());
         if (vehicle.getRealmId() != null) {
@@ -463,7 +471,8 @@ public class ConsumptionOrchestrator {
                     return;
                 }
                 try {
-                    clientPool.createConnection(session.getVehicle(), session.getClientId());
+                    locationPollingService.subscribeVehicle(session.getVehicle().getId(), session.getClientId());
+                    locationPollingService.start();
                     session.activate();
                     log.info("[{}] Session retry successful for vehicle '{}' (client: '{}')",
                             Instant.now(), session.getVehicle().getId(), session.getClientId());

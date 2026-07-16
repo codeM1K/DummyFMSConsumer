@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
  */
 class CascadingRealmSelectionPropertyTest {
 
-    private WebSocketClientPool clientPool;
+    private WebSocketClientPool clientPool; private LocationPollingService locationPollingService;
     private MetricsCollector metricsCollector;
     private DiscoveryService discoveryService;
     private ConfigurationService configService;
@@ -35,15 +35,14 @@ class CascadingRealmSelectionPropertyTest {
 
     @BeforeTry
     void setUp() {
-        clientPool = mock(WebSocketClientPool.class);
+        clientPool = mock(WebSocketClientPool.class); locationPollingService = mock(LocationPollingService.class);
         metricsCollector = mock(MetricsCollector.class);
         discoveryService = mock(DiscoveryService.class);
         configService = mock(ConfigurationService.class);
 
         when(configService.getSimulationMaxClients()).thenReturn(100);
 
-        orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
     }
 
     /**

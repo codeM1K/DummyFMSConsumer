@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 class MetricAggregationPropertyTest {
 
     private MetricsCollector metricsCollector;
-    private WebSocketClientPool clientPool;
+    private WebSocketClientPool clientPool; private LocationPollingService locationPollingService;
     private DiscoveryService discoveryService;
     private ConfigurationService configService;
     private ConsumptionOrchestrator orchestrator;
@@ -52,7 +52,7 @@ class MetricAggregationPropertyTest {
 
     @BeforeTry
     void setUpTry() {
-        clientPool = mock(WebSocketClientPool.class);
+        clientPool = mock(WebSocketClientPool.class); locationPollingService = mock(LocationPollingService.class);
         discoveryService = mock(DiscoveryService.class);
         configService = mock(ConfigurationService.class);
 
@@ -60,8 +60,7 @@ class MetricAggregationPropertyTest {
 
         metricsCollector.reset();
 
-        orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
     }
 
     /**

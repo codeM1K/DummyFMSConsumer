@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
  */
 class VehicleDistributionPropertyTest {
 
-    private WebSocketClientPool clientPool;
+    private WebSocketClientPool clientPool; private LocationPollingService locationPollingService;
     private MetricsCollector metricsCollector;
     private DiscoveryService discoveryService;
     private ConfigurationService configService;
@@ -50,7 +50,7 @@ class VehicleDistributionPropertyTest {
 
     @BeforeTry
     void setUpTry() {
-        clientPool = mock(WebSocketClientPool.class);
+        clientPool = mock(WebSocketClientPool.class); locationPollingService = mock(LocationPollingService.class);
         discoveryService = mock(DiscoveryService.class);
         configService = mock(ConfigurationService.class);
 
@@ -58,8 +58,7 @@ class VehicleDistributionPropertyTest {
 
         metricsCollector.reset();
 
-        orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
     }
 
     /**

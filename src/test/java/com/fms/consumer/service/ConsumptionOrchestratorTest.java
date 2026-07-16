@@ -31,6 +31,9 @@ class ConsumptionOrchestratorTest {
     private WebSocketClientPool clientPool;
 
     @Mock
+    private LocationPollingService locationPollingService;
+
+    @Mock
     private DiscoveryService discoveryService;
 
     @Mock
@@ -42,7 +45,7 @@ class ConsumptionOrchestratorTest {
     @BeforeEach
     void setUp() {
         metricsCollector = new MetricsCollector();
-        orchestrator = new ConsumptionOrchestrator(clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
     }
 
     // --- 1. startRandomMode() creates sessions from available vehicles, sets mode to RANDOM ---
@@ -88,7 +91,7 @@ class ConsumptionOrchestratorTest {
     }
 
     @Test
-    void startRandomMode_callsClientPoolCreateConnection() {
+    void startRandomMode_callsLocationPollingServiceSubscribe() {
         List<Vehicle> vehicles = List.of(
                 new Vehicle("v1", "Truck 1", "realm-A", VehicleStatus.ACTIVE)
         );
@@ -97,7 +100,8 @@ class ConsumptionOrchestratorTest {
 
         orchestrator.startRandomMode();
 
-        verify(clientPool, atLeastOnce()).createConnection(any(Vehicle.class), anyString());
+        verify(locationPollingService, atLeastOnce()).subscribeVehicle(anyString(), anyString());
+        verify(locationPollingService, atLeastOnce()).start();
     }
 
     // --- 2. stopRandomMode() removes RANDOM sessions, transitions to IDLE ---
@@ -138,7 +142,7 @@ class ConsumptionOrchestratorTest {
     }
 
     @Test
-    void stopRandomMode_closesWebSocketConnections() {
+    void stopRandomMode_unsubscribesVehiclesFromPolling() {
         List<Vehicle> vehicles = List.of(
                 new Vehicle("v1", "Truck 1", "realm-A", VehicleStatus.ACTIVE)
         );
@@ -148,7 +152,7 @@ class ConsumptionOrchestratorTest {
         orchestrator.startRandomMode();
         orchestrator.stopRandomMode();
 
-        verify(clientPool, atLeastOnce()).closeConnection(anyString(), anyString());
+        verify(locationPollingService, atLeastOnce()).unsubscribeVehicle(anyString());
     }
 
     // --- 3. startControlledMode(Set<Vehicle>) creates sessions, sets mode to CONTROLLED ---
@@ -178,13 +182,14 @@ class ConsumptionOrchestratorTest {
     }
 
     @Test
-    void startControlledMode_createsWebSocketConnections() {
+    void startControlledMode_subscribesVehiclesForPolling() {
         Vehicle v1 = new Vehicle("v1", "Truck 1", "realm-A", VehicleStatus.ACTIVE);
         Set<Vehicle> vehicles = Set.of(v1);
 
         orchestrator.startControlledMode(vehicles);
 
-        verify(clientPool).createConnection(eq(v1), eq("client_1"));
+        verify(locationPollingService).subscribeVehicle(eq("v1"), eq("client_1"));
+        verify(locationPollingService).start();
     }
 
     @Test
@@ -231,14 +236,14 @@ class ConsumptionOrchestratorTest {
     }
 
     @Test
-    void stopControlledMode_closesWebSocketConnectionsForRemovedVehicles() {
+    void stopControlledMode_unsubscribesVehiclesFromPolling() {
         Vehicle v1 = new Vehicle("v1", "Truck 1", "realm-A", VehicleStatus.ACTIVE);
         Set<Vehicle> vehicles = Set.of(v1);
 
         orchestrator.startControlledMode(vehicles);
         orchestrator.stopControlledMode(vehicles);
 
-        verify(clientPool).closeConnection(eq("v1"), eq("client_1"));
+        verify(locationPollingService).unsubscribeVehicle(eq("v1"));
     }
 
     // --- 5. configureMultiClient(int) validates bounds (1-100), rejects invalid values ---
@@ -313,7 +318,7 @@ class ConsumptionOrchestratorTest {
     }
 
     @Test
-    void multiClient_createsIndependentConnectionsPerClient() {
+    void multiClient_subscribesIndependentlyPerClient() {
         when(configService.getSimulationMaxClients()).thenReturn(100);
         orchestrator.configureMultiClient(2);
 
@@ -322,8 +327,8 @@ class ConsumptionOrchestratorTest {
 
         orchestrator.startControlledMode(vehicles);
 
-        verify(clientPool).createConnection(eq(v1), eq("client_1"));
-        verify(clientPool).createConnection(eq(v1), eq("client_2"));
+        verify(locationPollingService).subscribeVehicle(eq("v1"), eq("client_1"));
+        verify(locationPollingService).subscribeVehicle(eq("v1"), eq("client_2"));
     }
 
     // --- 7. Starting Controlled Mode twice doesn't duplicate sessions for same vehicle ---

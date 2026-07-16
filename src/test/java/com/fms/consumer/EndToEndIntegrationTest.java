@@ -34,6 +34,7 @@ class EndToEndIntegrationTest {
     private DiscoveryService discoveryService;
     private ConsumptionOrchestrator consumptionOrchestrator;
     private WebSocketClientPool webSocketClientPool;
+    private LocationPollingService locationPollingService;
     private OpenRemoteRestClient restClient;
 
     @BeforeEach
@@ -50,8 +51,9 @@ class EndToEndIntegrationTest {
         authenticationService = new AuthenticationService(configurationService, restClient);
         discoveryService = new DiscoveryService(authenticationService, restClient, configurationService);
         webSocketClientPool = new WebSocketClientPool(locationDataHandler, configurationService, authenticationService);
+        locationPollingService = new LocationPollingService(configurationService, authenticationService, locationDataHandler, metricsCollector);
         consumptionOrchestrator = new ConsumptionOrchestrator(
-                webSocketClientPool, metricsCollector, discoveryService, configurationService);
+                webSocketClientPool, locationPollingService, metricsCollector, discoveryService, configurationService);
     }
 
     // --- Task 19.1: Verify all components are wired together ---

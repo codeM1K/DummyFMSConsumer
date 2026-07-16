@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
  */
 class IsolatedVehicleFailurePropertyTest {
 
-    private WebSocketClientPool clientPool;
+    private WebSocketClientPool clientPool; private LocationPollingService locationPollingService;
     private MetricsCollector metricsCollector;
     private DiscoveryService discoveryService;
     private ConfigurationService configService;
@@ -49,7 +49,7 @@ class IsolatedVehicleFailurePropertyTest {
 
     @BeforeTry
     void setUpTry() {
-        clientPool = mock(WebSocketClientPool.class);
+        clientPool = mock(WebSocketClientPool.class); locationPollingService = mock(LocationPollingService.class);
         discoveryService = mock(DiscoveryService.class);
         configService = mock(ConfigurationService.class);
 
@@ -60,8 +60,7 @@ class IsolatedVehicleFailurePropertyTest {
 
         metricsCollector.reset();
 
-        orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
     }
 
     /**

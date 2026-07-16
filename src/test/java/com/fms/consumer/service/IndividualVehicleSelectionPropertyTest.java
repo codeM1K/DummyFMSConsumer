@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
  */
 class IndividualVehicleSelectionPropertyTest {
 
-    private WebSocketClientPool clientPool;
+    private WebSocketClientPool clientPool; private LocationPollingService locationPollingService;
     private MetricsCollector metricsCollector;
     private DiscoveryService discoveryService;
     private ConfigurationService configService;
@@ -39,7 +39,7 @@ class IndividualVehicleSelectionPropertyTest {
 
     @BeforeTry
     void setUp() {
-        clientPool = mock(WebSocketClientPool.class);
+        clientPool = mock(WebSocketClientPool.class); locationPollingService = mock(LocationPollingService.class);
         metricsCollector = mock(MetricsCollector.class);
         discoveryService = mock(DiscoveryService.class);
         configService = mock(ConfigurationService.class);
@@ -48,8 +48,7 @@ class IndividualVehicleSelectionPropertyTest {
         when(clientPool.createConnection(any(Vehicle.class), anyString()))
                 .thenReturn(CompletableFuture.completedFuture(null));
 
-        orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
     }
 
     /**

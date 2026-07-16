@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
  */
 class MultiClientConnectionCreationPropertyTest {
 
-    private WebSocketClientPool clientPool;
+    private WebSocketClientPool clientPool; private LocationPollingService locationPollingService;
     private MetricsCollector metricsCollector;
     private DiscoveryService discoveryService;
     private ConfigurationService configService;
@@ -50,7 +50,7 @@ class MultiClientConnectionCreationPropertyTest {
 
     @BeforeTry
     void setUpTry() {
-        clientPool = mock(WebSocketClientPool.class);
+        clientPool = mock(WebSocketClientPool.class); locationPollingService = mock(LocationPollingService.class);
         discoveryService = mock(DiscoveryService.class);
         configService = mock(ConfigurationService.class);
 
@@ -58,8 +58,7 @@ class MultiClientConnectionCreationPropertyTest {
 
         metricsCollector.reset();
 
-        orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
     }
 
     /**
@@ -157,31 +156,31 @@ class MultiClientConnectionCreationPropertyTest {
 
     /**
      * For any configured number of clients (1-10) and any set of vehicles,
-     * when startControlledMode is called, the clientPool.createConnection SHALL
+     * when startControlledMode is called, the locationPollingService.subscribeVehicle SHALL
      * be called vehicles.size() * clientCount times (once per vehicle-client pair),
-     * demonstrating independent WebSocket connections.
+     * demonstrating independent polling subscriptions.
      *
      * <p><b>Validates: Requirements 7.2</b></p>
      */
     @Property(tries = 100)
-    void multiClientMode_createsIndependentWebSocketConnectionPerVehicleClientPair(
+    void multiClientMode_createsIndependentPollingSubscriptionPerVehicleClientPair(
             @ForAll @IntRange(min = 1, max = 10) int clientCount,
             @ForAll("vehicleSets") Set<Vehicle> vehicles) {
 
         orchestrator.configureMultiClient(clientCount);
         orchestrator.startControlledMode(vehicles);
 
-        int expectedConnections = vehicles.size() * clientCount;
+        int expectedSubscriptions = vehicles.size() * clientCount;
 
-        // Verify the total number of createConnection calls
-        verify(clientPool, times(expectedConnections))
-                .createConnection(any(Vehicle.class), anyString());
+        // Verify the total number of subscribeVehicle calls
+        verify(locationPollingService, times(expectedSubscriptions))
+                .subscribeVehicle(anyString(), anyString());
 
-        // Verify each vehicle-client pair gets its own connection call
+        // Verify each vehicle-client pair gets its own subscription call
         for (Vehicle vehicle : vehicles) {
             for (int i = 1; i <= clientCount; i++) {
                 String expectedClientId = "client_" + i;
-                verify(clientPool).createConnection(eq(vehicle), eq(expectedClientId));
+                verify(locationPollingService).subscribeVehicle(eq(vehicle.getId()), eq(expectedClientId));
             }
         }
     }

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
  */
 class SessionResumptionAfterOutagePropertyTest {
 
-    private WebSocketClientPool clientPool;
+    private WebSocketClientPool clientPool; private LocationPollingService locationPollingService;
     private MetricsCollector metricsCollector;
     private DiscoveryService discoveryService;
     private ConfigurationService configService;
@@ -50,7 +50,7 @@ class SessionResumptionAfterOutagePropertyTest {
 
     @BeforeTry
     void setUpTry() {
-        clientPool = mock(WebSocketClientPool.class);
+        clientPool = mock(WebSocketClientPool.class); locationPollingService = mock(LocationPollingService.class);
         discoveryService = mock(DiscoveryService.class);
         configService = mock(ConfigurationService.class);
 
@@ -61,8 +61,7 @@ class SessionResumptionAfterOutagePropertyTest {
 
         metricsCollector.reset();
 
-        orchestrator = new ConsumptionOrchestrator(
-                clientPool, metricsCollector, discoveryService, configService);
+        orchestrator = new ConsumptionOrchestrator(clientPool, locationPollingService, metricsCollector, discoveryService, configService);
     }
 
     /**
@@ -95,8 +94,9 @@ class SessionResumptionAfterOutagePropertyTest {
         assertEquals(sessionCountBeforeOutage, suspendedSessions.size(),
                 "All sessions should be suspended during outage");
 
-        // Reset mock invocation count to track only resume-related calls
+        // Reset mock invocation counts to track only resume-related calls
         reset(clientPool);
+        reset(locationPollingService);
 
         // Simulate network recovery: resume all sessions
         orchestrator.resumeAllSessions();
@@ -113,16 +113,16 @@ class SessionResumptionAfterOutagePropertyTest {
                             "Available: " + sessionsAfterResume.keySet());
         }
 
-        // Verify WebSocket connections are re-established for each session
+        // Verify polling subscriptions are re-established for each session
         for (Vehicle vehicle : vehicles) {
             for (int i = 1; i <= clientCount; i++) {
-                verify(clientPool).createConnection(eq(vehicle), eq("client_" + i));
+                verify(locationPollingService).subscribeVehicle(eq(vehicle.getId()), eq("client_" + i));
             }
         }
 
-        // Total connection re-establishments should match total sessions
-        verify(clientPool, times(sessionCountBeforeOutage))
-                .createConnection(any(Vehicle.class), anyString());
+        // Total subscription re-establishments should match total sessions
+        verify(locationPollingService, times(sessionCountBeforeOutage))
+                .subscribeVehicle(anyString(), anyString());
     }
 
     /**
@@ -176,13 +176,13 @@ class SessionResumptionAfterOutagePropertyTest {
     }
 
     /**
-     * For any set of active sessions, connections SHALL be closed during suspension
-     * (simulating outage disconnection) and re-created during resumption.
+     * For any set of active sessions, polling SHALL be stopped during suspension
+     * (simulating outage disconnection) and re-started during resumption.
      *
      * <p><b>Validates: Requirements 12.3</b></p>
      */
     @Property(tries = 100)
-    void connectionsClosedDuringSuspensionAndRecreatedOnResumption(
+    void pollingStoppedDuringSuspensionAndRestartedOnResumption(
             @ForAll("vehicleSets") Set<Vehicle> vehicles,
             @ForAll("clientCounts") int clientCount) {
 
@@ -192,21 +192,21 @@ class SessionResumptionAfterOutagePropertyTest {
         int totalSessions = vehicles.size() * clientCount;
 
         // Reset to only track suspend/resume interactions
-        reset(clientPool);
+        reset(locationPollingService);
 
-        // Suspend: connections should be closed
+        // Suspend: polling should be stopped
         orchestrator.suspendAllSessions();
 
-        // Verify connections were closed during suspension
-        verify(clientPool, times(totalSessions))
-                .closeConnection(anyString(), anyString());
+        // Verify polling was stopped and vehicles unsubscribed during suspension
+        verify(locationPollingService).stop();
+        verify(locationPollingService).unsubscribeAll();
 
-        // Resume: connections should be re-created
+        // Resume: subscriptions should be re-created
         orchestrator.resumeAllSessions();
 
-        // Verify connections were re-created during resumption
-        verify(clientPool, times(totalSessions))
-                .createConnection(any(Vehicle.class), anyString());
+        // Verify subscriptions were re-created during resumption
+        verify(locationPollingService, times(totalSessions))
+                .subscribeVehicle(anyString(), anyString());
     }
 
     // --- Generators ---
