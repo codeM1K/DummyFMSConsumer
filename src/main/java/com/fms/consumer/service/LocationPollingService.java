@@ -42,6 +42,13 @@ public class LocationPollingService {
     private final HttpClient httpClient;
 
     private volatile boolean active = false;
+    private volatile boolean adaptiveThrottlingEnabled = false;
+    private volatile int currentPollIntervalSeconds;
+    private final int basePollIntervalSeconds;
+    private volatile int consecutiveFastResponses = 0;
+    private volatile long lastResponseTimeMs = 0;
+    private volatile ScheduledFuture<?> pollTask;
+
     private final Set<String> subscribedVehicleIds = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<String, String> vehicleClientMap = new ConcurrentHashMap<>();
 
@@ -64,9 +71,10 @@ public class LocationPollingService {
             return t;
         });
         // Start polling with configurable interval (minimum 2 seconds)
-        int pollInterval = Math.max(2, configService.getMetricsRefreshInterval());
-        scheduler.scheduleAtFixedRate(this::pollLocationData, pollInterval, pollInterval, TimeUnit.SECONDS);
-        log.info("LocationPollingService initialized with {}-second polling interval", pollInterval);
+        this.basePollIntervalSeconds = Math.max(2, configService.getMetricsRefreshInterval());
+        this.currentPollIntervalSeconds = basePollIntervalSeconds;
+        this.pollTask = scheduler.scheduleAtFixedRate(this::pollLocationData, basePollIntervalSeconds, basePollIntervalSeconds, TimeUnit.SECONDS);
+        log.info("LocationPollingService initialized with {}-second polling interval", basePollIntervalSeconds);
     }
 
     /**
@@ -138,6 +146,7 @@ public class LocationPollingService {
     /**
      * Polls the Open Remote asset query endpoint for location data.
      * Only executes when active and there are subscribed vehicles.
+     * Measures response time and applies adaptive throttling if enabled.
      */
     private void pollLocationData() {
         if (!active || subscribedVehicleIds.isEmpty()) {
@@ -149,6 +158,8 @@ public class LocationPollingService {
             log.debug("No auth token available, skipping location poll");
             return;
         }
+
+        long startTime = System.currentTimeMillis();
 
         try {
             String baseUrl = configService.getApiEndpoint();
@@ -167,18 +178,116 @@ public class LocationPollingService {
 
             httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                     .thenAccept(response -> {
+                        long responseTime = System.currentTimeMillis() - startTime;
+                        lastResponseTimeMs = responseTime;
+
                         if (response.statusCode() >= 200 && response.statusCode() < 300) {
                             parseAndNotifyLocations(response.body());
                         } else {
                             log.debug("Location poll returned status {}", response.statusCode());
                         }
+
+                        if (adaptiveThrottlingEnabled) {
+                            applyAdaptiveThrottling(responseTime);
+                        }
                     })
                     .exceptionally(ex -> {
+                        long responseTime = System.currentTimeMillis() - startTime;
+                        lastResponseTimeMs = responseTime;
+
+                        if (adaptiveThrottlingEnabled) {
+                            applyAdaptiveThrottling(responseTime > 0 ? responseTime : 10000);
+                        }
+
                         log.debug("Location poll failed: {}", ex.getMessage());
                         return null;
                     });
         } catch (Exception e) {
             log.debug("Error during location poll: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * Enables or disables adaptive throttling.
+     * When disabled, resets the poll interval back to the base interval.
+     *
+     * @param enabled true to enable adaptive throttling
+     */
+    public void setAdaptiveThrottlingEnabled(boolean enabled) {
+        this.adaptiveThrottlingEnabled = enabled;
+        if (!enabled) {
+            adjustPollInterval(basePollIntervalSeconds);
+        }
+        log.info("Adaptive throttling {}", enabled ? "enabled" : "disabled");
+    }
+
+    /**
+     * Returns whether adaptive throttling is currently enabled.
+     */
+    public boolean isAdaptiveThrottlingEnabled() {
+        return adaptiveThrottlingEnabled;
+    }
+
+    /**
+     * Returns the current poll interval in seconds.
+     */
+    public int getCurrentPollIntervalSeconds() {
+        return currentPollIntervalSeconds;
+    }
+
+    /**
+     * Returns the last measured response time in milliseconds.
+     */
+    public long getLastResponseTimeMs() {
+        return lastResponseTimeMs;
+    }
+
+    /**
+     * Adjusts the polling interval by cancelling the current schedule
+     * and rescheduling with the new interval.
+     *
+     * @param newIntervalSeconds the new polling interval in seconds
+     */
+    private void adjustPollInterval(int newIntervalSeconds) {
+        if (newIntervalSeconds == currentPollIntervalSeconds) return;
+
+        int oldInterval = currentPollIntervalSeconds;
+        currentPollIntervalSeconds = newIntervalSeconds;
+
+        if (pollTask != null) {
+            pollTask.cancel(false);
+        }
+        pollTask = scheduler.scheduleAtFixedRate(this::pollLocationData, newIntervalSeconds, newIntervalSeconds, TimeUnit.SECONDS);
+        log.info("[{}] Adaptive throttle: poll interval changed from {}s to {}s (last response: {}ms)",
+                Instant.now(), oldInterval, newIntervalSeconds, lastResponseTimeMs);
+    }
+
+    /**
+     * Applies adaptive throttling logic based on the measured response time.
+     * Increases interval for slow responses and decreases for consistently fast ones.
+     *
+     * @param responseTimeMs the response time in milliseconds
+     */
+    private void applyAdaptiveThrottling(long responseTimeMs) {
+        if (responseTimeMs > 8000) {
+            consecutiveFastResponses = 0;
+            adjustPollInterval(20);
+        } else if (responseTimeMs > 4000) {
+            consecutiveFastResponses = 0;
+            adjustPollInterval(10);
+        } else if (responseTimeMs > 2000) {
+            consecutiveFastResponses = 0;
+            adjustPollInterval(5);
+        } else if (responseTimeMs < 1000) {
+            consecutiveFastResponses++;
+            if (consecutiveFastResponses >= 5 && currentPollIntervalSeconds > basePollIntervalSeconds) {
+                int newInterval = Math.max(basePollIntervalSeconds, currentPollIntervalSeconds / 2);
+                consecutiveFastResponses = 0;
+                adjustPollInterval(newInterval);
+            }
+        } else {
+            // Between 1-2 seconds - stay at current interval
+            consecutiveFastResponses = 0;
         }
     }
 

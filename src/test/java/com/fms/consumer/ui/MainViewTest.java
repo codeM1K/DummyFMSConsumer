@@ -21,6 +21,7 @@ class MainViewTest {
     private ConsumptionOrchestrator consumptionOrchestrator;
     private MetricsCollector metricsCollector;
     private LocationDataHandler locationDataHandler;
+    private LocationPollingService locationPollingService;
 
     @BeforeEach
     void setUp() {
@@ -29,6 +30,7 @@ class MainViewTest {
         consumptionOrchestrator = mock(ConsumptionOrchestrator.class);
         metricsCollector = mock(MetricsCollector.class);
         locationDataHandler = mock(LocationDataHandler.class);
+        locationPollingService = mock(LocationPollingService.class);
 
         when(consumptionOrchestrator.getCurrentMode())
                 .thenReturn(com.fms.consumer.model.ConsumptionMode.IDLE);
@@ -39,7 +41,8 @@ class MainViewTest {
     void mainView_constructsWithAllComponents() {
         MainView view = new MainView(
                 authenticationService, discoveryService,
-                consumptionOrchestrator, metricsCollector, locationDataHandler);
+                consumptionOrchestrator, metricsCollector, locationDataHandler,
+                locationPollingService);
 
         assertNotNull(view.getRealmVehicleTree());
         assertNotNull(view.getConsumptionControlPanel());
@@ -52,7 +55,8 @@ class MainViewTest {
     void mainView_registersDiscoveryListener() {
         MainView view = new MainView(
                 authenticationService, discoveryService,
-                consumptionOrchestrator, metricsCollector, locationDataHandler);
+                consumptionOrchestrator, metricsCollector, locationDataHandler,
+                locationPollingService);
 
         verify(discoveryService).addListener(view.getRealmVehicleTree());
     }
@@ -61,7 +65,8 @@ class MainViewTest {
     void mainView_registersLocationDataListener() {
         MainView view = new MainView(
                 authenticationService, discoveryService,
-                consumptionOrchestrator, metricsCollector, locationDataHandler);
+                consumptionOrchestrator, metricsCollector, locationDataHandler,
+                locationPollingService);
 
         verify(locationDataHandler).addListener(view.getLocationDataGrid());
     }
@@ -70,7 +75,8 @@ class MainViewTest {
     void mainView_wiresOrchestratorToControlPanel() {
         MainView view = new MainView(
                 authenticationService, discoveryService,
-                consumptionOrchestrator, metricsCollector, locationDataHandler);
+                consumptionOrchestrator, metricsCollector, locationDataHandler,
+                locationPollingService);
 
         // The control panel should have an orchestrator set
         // The fact that getCurrentMode is called indicates wiring worked
@@ -81,7 +87,8 @@ class MainViewTest {
     void mainView_wiresMetricsCollectorToPanel() {
         MainView view = new MainView(
                 authenticationService, discoveryService,
-                consumptionOrchestrator, metricsCollector, locationDataHandler);
+                consumptionOrchestrator, metricsCollector, locationDataHandler,
+                locationPollingService);
 
         // MetricsPanel has a metricsCollector set - verified by construction without error
         assertNotNull(view.getMetricsPanel());
@@ -91,7 +98,8 @@ class MainViewTest {
     void mainView_hasSizeFull() {
         MainView view = new MainView(
                 authenticationService, discoveryService,
-                consumptionOrchestrator, metricsCollector, locationDataHandler);
+                consumptionOrchestrator, metricsCollector, locationDataHandler,
+                locationPollingService);
 
         // VerticalLayout should be full size
         assertEquals("100%", view.getWidth());

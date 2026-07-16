@@ -3,8 +3,10 @@ package com.fms.consumer.ui;
 import com.fms.consumer.model.ConsumptionMode;
 import com.fms.consumer.model.Vehicle;
 import com.fms.consumer.service.ConsumptionOrchestrator;
+import com.fms.consumer.service.LocationPollingService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -32,8 +34,10 @@ public class ConsumptionControlPanel extends VerticalLayout {
     private final Button startControlledButton;
     private final Button stopControlledButton;
     private final Span modeStatusLabel;
+    private final Checkbox adaptiveThrottlingCheckbox;
 
     private ConsumptionOrchestrator orchestrator;
+    private LocationPollingService locationPollingService;
     private Supplier<Set<Vehicle>> vehicleSupplier;
 
     /**
@@ -44,6 +48,11 @@ public class ConsumptionControlPanel extends VerticalLayout {
         modeStatusLabel = new Span("Mode: IDLE");
         modeStatusLabel.getElement().getStyle().set("font-weight", "bold");
         modeStatusLabel.getElement().getStyle().set("font-size", "1.1em");
+
+        // Adaptive throttling checkbox
+        adaptiveThrottlingCheckbox = new Checkbox("Adaptive Throttling");
+        adaptiveThrottlingCheckbox.setValue(false);
+        adaptiveThrottlingCheckbox.addValueChangeListener(event -> onAdaptiveThrottlingChanged(event.getValue()));
 
         // Random Mode buttons
         startRandomButton = new Button("Start Random Mode", event -> onStartRandomMode());
@@ -62,6 +71,10 @@ public class ConsumptionControlPanel extends VerticalLayout {
         stopControlledButton.setEnabled(false);
 
         // Layout
+        HorizontalLayout statusRow = new HorizontalLayout(modeStatusLabel, adaptiveThrottlingCheckbox);
+        statusRow.setAlignItems(Alignment.CENTER);
+        statusRow.setSpacing(true);
+
         HorizontalLayout randomControls = new HorizontalLayout(startRandomButton, stopRandomButton);
         randomControls.setSpacing(true);
 
@@ -70,7 +83,7 @@ public class ConsumptionControlPanel extends VerticalLayout {
 
         setPadding(true);
         setSpacing(true);
-        add(modeStatusLabel, randomControls, controlledControls);
+        add(statusRow, randomControls, controlledControls);
     }
 
     /**
@@ -91,6 +104,15 @@ public class ConsumptionControlPanel extends VerticalLayout {
      */
     public void setVehicleSupplier(Supplier<Set<Vehicle>> vehicleSupplier) {
         this.vehicleSupplier = vehicleSupplier;
+    }
+
+    /**
+     * Sets the LocationPollingService for adaptive throttling control.
+     *
+     * @param locationPollingService the location polling service instance
+     */
+    public void setLocationPollingService(LocationPollingService locationPollingService) {
+        this.locationPollingService = locationPollingService;
     }
 
     /**
@@ -147,6 +169,12 @@ public class ConsumptionControlPanel extends VerticalLayout {
         Set<Vehicle> selectedVehicles = getSelectedVehicles();
         orchestrator.stopControlledMode(selectedVehicles);
         refreshStatus();
+    }
+
+    private void onAdaptiveThrottlingChanged(boolean enabled) {
+        if (locationPollingService != null) {
+            locationPollingService.setAdaptiveThrottlingEnabled(enabled);
+        }
     }
 
     // --- Internal helpers ---
@@ -213,5 +241,9 @@ public class ConsumptionControlPanel extends VerticalLayout {
 
     Span getModeStatusLabel() {
         return modeStatusLabel;
+    }
+
+    Checkbox getAdaptiveThrottlingCheckbox() {
+        return adaptiveThrottlingCheckbox;
     }
 }

@@ -5,6 +5,7 @@ import com.fms.consumer.service.AuthenticationService;
 import com.fms.consumer.service.AuthenticationResult;
 import com.fms.consumer.service.ConsumptionOrchestrator;
 import com.fms.consumer.service.DiscoveryService;
+import com.fms.consumer.service.LocationPollingService;
 import com.fms.consumer.service.MetricsCollector;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
@@ -39,6 +40,7 @@ public class MainView extends VerticalLayout {
     private final ConsumptionOrchestrator consumptionOrchestrator;
     private final MetricsCollector metricsCollector;
     private final LocationDataHandler locationDataHandler;
+    private final LocationPollingService locationPollingService;
 
     private final RealmVehicleTree realmVehicleTree;
     private final ConsumptionControlPanel consumptionControlPanel;
@@ -53,12 +55,14 @@ public class MainView extends VerticalLayout {
                     DiscoveryService discoveryService,
                     ConsumptionOrchestrator consumptionOrchestrator,
                     MetricsCollector metricsCollector,
-                    LocationDataHandler locationDataHandler) {
+                    LocationDataHandler locationDataHandler,
+                    LocationPollingService locationPollingService) {
         this.authenticationService = authenticationService;
         this.discoveryService = discoveryService;
         this.consumptionOrchestrator = consumptionOrchestrator;
         this.metricsCollector = metricsCollector;
         this.locationDataHandler = locationDataHandler;
+        this.locationPollingService = locationPollingService;
 
         // Create UI components
         this.realmVehicleTree = new RealmVehicleTree();
@@ -70,6 +74,7 @@ public class MainView extends VerticalLayout {
         // Wire components to services
         consumptionControlPanel.setOrchestrator(consumptionOrchestrator);
         consumptionControlPanel.setVehicleSupplier(realmVehicleTree::getSelectedVehicles);
+        consumptionControlPanel.setLocationPollingService(locationPollingService);
         multiClientConfigPanel.setOrchestrator(consumptionOrchestrator);
         metricsPanel.setMetricsCollector(metricsCollector);
 
