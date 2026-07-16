@@ -222,6 +222,19 @@ public class DiscoveryService {
                     // Notify listeners
                     notifyRealmsUpdated(realms);
 
+                    // After realm discovery completes, immediately discover vehicles for each realm
+                    for (Realm realm : realms) {
+                        discoverVehicles(realm.getId()).whenComplete((vehicles, vehicleError) -> {
+                            if (vehicleError != null) {
+                                log.warn("[{}] Initial vehicle discovery failed for realm '{}': {}",
+                                        Instant.now(), realm.getId(), vehicleError.getMessage());
+                            } else {
+                                log.info("[{}] Initial vehicle discovery for realm '{}' found {} vehicles",
+                                        Instant.now(), realm.getId(), vehicles.size());
+                            }
+                        });
+                    }
+
                     return realms;
                 })
                 .exceptionally(throwable -> {
