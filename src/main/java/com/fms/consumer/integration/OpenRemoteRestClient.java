@@ -8,6 +8,7 @@ import com.fms.consumer.integration.dto.VehicleDTO;
 import com.fms.consumer.service.ConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -33,6 +34,7 @@ public class OpenRemoteRestClient {
     private final ObjectMapper objectMapper;
     private final ConfigurationService configurationService;
 
+    @Autowired
     public OpenRemoteRestClient(ConfigurationService configurationService) {
         this(configurationService, HttpClient.newBuilder()
                 .connectTimeout(Duration.ofMillis(configurationService.getConnectionTimeout()))
