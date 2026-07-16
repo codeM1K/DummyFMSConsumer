@@ -73,8 +73,10 @@ public class LocationPollingService {
      * location data of subscribed vehicles.
      */
     public void start() {
-        this.active = true;
-        log.info("LocationPollingService started");
+        if (!this.active) {
+            this.active = true;
+            log.info("LocationPollingService started");
+        }
     }
 
     /**

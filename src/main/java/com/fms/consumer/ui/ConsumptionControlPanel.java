@@ -6,6 +6,8 @@ import com.fms.consumer.service.ConsumptionOrchestrator;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
@@ -124,6 +126,16 @@ public class ConsumptionControlPanel extends VerticalLayout {
             return;
         }
         Set<Vehicle> selectedVehicles = getSelectedVehicles();
+        if (selectedVehicles.isEmpty()) {
+            try {
+                Notification notification = Notification.show(
+                    "Please select vehicles in the tree first", 4000, Notification.Position.MIDDLE);
+                notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+            } catch (Exception e) {
+                // No UI context
+            }
+            return;
+        }
         orchestrator.startControlledMode(selectedVehicles);
         refreshStatus();
     }

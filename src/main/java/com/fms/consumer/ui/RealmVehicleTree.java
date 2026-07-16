@@ -339,8 +339,33 @@ public class RealmVehicleTree extends VerticalLayout implements DiscoveryListene
 
     @Override
     public void onRealmsUpdated(List<Realm> realms) {
-        // Update tree on the UI thread
-        getUI().ifPresent(ui -> ui.access(() -> setData(realms)));
+        // Only update if data actually changed to avoid clearing selections
+        getUI().ifPresent(ui -> ui.access(() -> {
+            if (!hasDataChanged(realms)) {
+                return; // Skip update - data hasn't changed
+            }
+            setData(realms);
+        }));
+    }
+
+    private boolean hasDataChanged(List<Realm> newRealms) {
+        if (newRealms == null && realmNodes.isEmpty()) return false;
+        if (newRealms == null || newRealms.size() != realmNodes.size()) return true;
+
+        // Check if realm IDs match
+        Set<String> currentRealmIds = realmNodes.keySet();
+        Set<String> newRealmIds = newRealms.stream().map(Realm::getId).collect(Collectors.toSet());
+        if (!currentRealmIds.equals(newRealmIds)) return true;
+
+        // Check if vehicle counts changed per realm
+        for (Realm realm : newRealms) {
+            List<TreeNode> existingVehicles = realmVehicleNodes.get(realm.getId());
+            int existingCount = existingVehicles != null ? existingVehicles.size() : 0;
+            int newCount = realm.getVehicles() != null ? realm.getVehicles().size() : 0;
+            if (existingCount != newCount) return true;
+        }
+
+        return false;
     }
 
     @Override
