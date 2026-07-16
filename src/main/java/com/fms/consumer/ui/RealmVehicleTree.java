@@ -115,6 +115,9 @@ public class RealmVehicleTree extends VerticalLayout implements DiscoveryListene
     private final Map<String, TreeNode> realmNodes = new LinkedHashMap<>();
     private final Map<String, List<TreeNode>> realmVehicleNodes = new LinkedHashMap<>();
 
+    // Once true, all subsequent discovery listener callbacks are ignored
+    private volatile boolean initialDataLoaded = false;
+
     /**
      * Listener interface for vehicle selection changes.
      */
@@ -256,6 +259,7 @@ public class RealmVehicleTree extends VerticalLayout implements DiscoveryListene
         }
 
         dataProvider.refreshAll();
+        initialDataLoaded = true;
     }
 
     /**
@@ -339,7 +343,9 @@ public class RealmVehicleTree extends VerticalLayout implements DiscoveryListene
 
     @Override
     public void onRealmsUpdated(List<Realm> realms) {
-        // Only update if data actually changed to avoid clearing selections
+        if (initialDataLoaded) {
+            return; // Tree already populated, ignore subsequent updates
+        }
         getUI().ifPresent(ui -> ui.access(() -> {
             if (!hasDataChanged(realms)) {
                 return; // Skip update - data hasn't changed
@@ -370,6 +376,9 @@ public class RealmVehicleTree extends VerticalLayout implements DiscoveryListene
 
     @Override
     public void onVehiclesUpdated(String realmId, List<Vehicle> vehicles) {
+        if (initialDataLoaded) {
+            return; // Tree already populated, ignore subsequent updates
+        }
         getUI().ifPresent(ui -> ui.access(() -> {
             TreeNode realmNode = realmNodes.get(realmId);
             if (realmNode == null) {
