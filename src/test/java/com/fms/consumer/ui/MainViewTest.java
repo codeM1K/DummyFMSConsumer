@@ -106,8 +106,8 @@ class MainViewTest {
     }
 
     @Test
-    void mainView_hasPushAnnotation() {
-        assertTrue(MainView.class.isAnnotationPresent(
+    void appShellConfig_hasPushAnnotation() {
+        assertTrue(com.fms.consumer.config.AppShellConfig.class.isAnnotationPresent(
                 com.vaadin.flow.component.page.Push.class));
     }
 }

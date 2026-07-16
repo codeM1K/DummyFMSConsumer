@@ -15,8 +15,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.shared.communication.PushMode;
-import com.vaadin.flow.component.page.Push;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +30,6 @@ import org.slf4j.LoggerFactory;
  * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 1.1, 1.3, 2.1, 2.4, 3.4
  */
 @Route("")
-@Push(PushMode.AUTOMATIC)
 public class MainView extends VerticalLayout {
 
     private static final Logger log = LoggerFactory.getLogger(MainView.class);
