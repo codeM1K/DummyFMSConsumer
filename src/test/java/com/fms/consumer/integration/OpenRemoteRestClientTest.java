@@ -121,8 +121,8 @@ class OpenRemoteRestClientTest {
     void getRealms_withValidToken_returnsRealmList() throws Exception {
         String responseBody = """
                 [
-                    {"id": "realm-1", "name": "Athens Fleet"},
-                    {"id": "realm-2", "name": "Thessaloniki Fleet"}
+                    {"name": "realm-1", "displayName": "Athens Fleet"},
+                    {"name": "realm-2", "displayName": "Thessaloniki Fleet"}
                 ]
                 """;
         mockServer.enqueue(new MockResponse()
@@ -168,8 +168,8 @@ class OpenRemoteRestClientTest {
     void getVehicles_withValidRealm_returnsVehicleList() throws Exception {
         String responseBody = """
                 [
-                    {"id": "vehicle-1", "name": "Truck A", "realmId": "realm-1"},
-                    {"id": "vehicle-2", "name": "Van B", "realmId": "realm-1"}
+                    {"id": "vehicle-1", "name": "Truck A", "realm": "realm-1", "type": "CarAsset"},
+                    {"id": "vehicle-2", "name": "Van B", "realm": "realm-1", "type": "CarAsset"}
                 ]
                 """;
         mockServer.enqueue(new MockResponse()
@@ -283,9 +283,9 @@ class OpenRemoteRestClientTest {
         assertEquals("POST", request.getMethod());
         assertEquals("/api/master/asset/query", request.getPath());
         String body = request.getBody().readUtf8();
-        assertTrue(body.contains("\"realm\""));
-        assertTrue(body.contains("\"name\""));
-        assertTrue(body.contains("realm-1"));
         assertTrue(body.contains("\"select\""));
+        assertTrue(body.contains("\"include\""));
+        assertTrue(body.contains("\"ALL\""));
+        assertFalse(body.contains("\"realm\""), "Request body should not contain realm filter");
     }
 }

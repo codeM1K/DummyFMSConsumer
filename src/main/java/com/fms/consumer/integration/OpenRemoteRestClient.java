@@ -1,6 +1,5 @@
 package com.fms.consumer.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fms.consumer.integration.dto.AuthResponse;
@@ -20,6 +19,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -125,10 +125,7 @@ public class OpenRemoteRestClient {
 
         try {
             String requestBody = objectMapper.writeValueAsString(
-                    Map.of(
-                        "realm", Map.of("name", realmId),
-                        "select", List.of("id", "name", "type", "attributes", "path")
-                    )
+                    Map.of("select", Map.of("include", "ALL"))
             );
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -179,13 +176,24 @@ public class OpenRemoteRestClient {
 
         if (statusCode >= 200 && statusCode < 300) {
             try {
-                List<RealmDTO> realms = objectMapper.readValue(
-                        response.body(), new TypeReference<List<RealmDTO>>() {});
+                JsonNode root = objectMapper.readTree(response.body());
+                List<RealmDTO> realms = new ArrayList<>();
+                if (root.isArray()) {
+                    for (JsonNode node : root) {
+                        String name = node.has("name") ? node.get("name").asText() : null;
+                        String displayName = node.has("displayName") ? node.get("displayName").asText() : name;
+                        if (name != null) {
+                            // Use realm "name" (e.g. "master") as the id, since that's what
+                            // the asset API returns in the "realm" field of each asset.
+                            realms.add(new RealmDTO(name, displayName != null ? displayName : name));
+                        }
+                    }
+                }
                 log.debug("Successfully retrieved {} realms", realms.size());
                 return realms;
             } catch (Exception e) {
-                log.error("[{}] Failed to parse realms response - URL: {}, Body: {}, Error: {}",
-                        Instant.now(), url, response.body(), e.getMessage(), e);
+                log.error("[{}] Failed to parse realms response - URL: {}, Error: {}",
+                        Instant.now(), url, e.getMessage(), e);
                 throw new RuntimeException("Failed to parse realms response: " + e.getMessage(), e);
             }
         } else {
@@ -202,14 +210,27 @@ public class OpenRemoteRestClient {
 
         if (statusCode >= 200 && statusCode < 300) {
             try {
-                List<VehicleDTO> vehicles = objectMapper.readValue(
-                        response.body(), new TypeReference<List<VehicleDTO>>() {});
-                log.debug("Successfully retrieved {} vehicles for realm '{}'", vehicles.size(), realmId);
+                JsonNode root = objectMapper.readTree(response.body());
+                List<VehicleDTO> vehicles = new ArrayList<>();
+                if (root.isArray()) {
+                    for (JsonNode node : root) {
+                        String id = node.has("id") ? node.get("id").asText() : null;
+                        String name = node.has("name") ? node.get("name").asText() : "Unknown";
+                        String realm = node.has("realm") ? node.get("realm").asText() : null;
+
+                        // Filter: only include assets from the requested realm
+                        if (realm != null && realm.equals(realmId)) {
+                            VehicleDTO dto = new VehicleDTO(id, name, realm);
+                            vehicles.add(dto);
+                        }
+                    }
+                }
+                log.debug("Successfully retrieved {} assets for realm '{}'", vehicles.size(), realmId);
                 return vehicles;
             } catch (Exception e) {
-                log.error("[{}] Failed to parse vehicles response - URL: {}, Realm: {}, Body: {}, Error: {}",
-                        Instant.now(), url, realmId, response.body(), e.getMessage(), e);
-                throw new RuntimeException("Failed to parse vehicles response: " + e.getMessage(), e);
+                log.error("[{}] Failed to parse asset response - URL: {}, Error: {}",
+                        Instant.now(), url, e.getMessage(), e);
+                throw new RuntimeException("Failed to parse asset response: " + e.getMessage(), e);
             }
         } else {
             String errorMsg = String.format(
