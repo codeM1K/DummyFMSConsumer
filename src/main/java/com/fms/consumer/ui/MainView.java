@@ -75,6 +75,7 @@ public class MainView extends VerticalLayout {
         consumptionControlPanel.setOrchestrator(consumptionOrchestrator);
         consumptionControlPanel.setVehicleSupplier(realmVehicleTree::getSelectedVehicles);
         consumptionControlPanel.setLocationPollingService(locationPollingService);
+        consumptionControlPanel.setMetricsPanel(metricsPanel);
         multiClientConfigPanel.setOrchestrator(consumptionOrchestrator);
         metricsPanel.setMetricsCollector(metricsCollector);
         metricsPanel.setLocationPollingService(locationPollingService);

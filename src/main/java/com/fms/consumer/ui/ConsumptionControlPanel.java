@@ -39,6 +39,7 @@ public class ConsumptionControlPanel extends VerticalLayout {
     private ConsumptionOrchestrator orchestrator;
     private LocationPollingService locationPollingService;
     private Supplier<Set<Vehicle>> vehicleSupplier;
+    private MetricsPanel metricsPanel;
 
     /**
      * Creates a new ConsumptionControlPanel with all controls in their initial state.
@@ -116,6 +117,15 @@ public class ConsumptionControlPanel extends VerticalLayout {
     }
 
     /**
+     * Sets the MetricsPanel for starting/stopping the elapsed time counter.
+     *
+     * @param metricsPanel the metrics panel instance
+     */
+    public void setMetricsPanel(MetricsPanel metricsPanel) {
+        this.metricsPanel = metricsPanel;
+    }
+
+    /**
      * Refreshes the button enabled/disabled states and status label
      * based on the current mode from the orchestrator.
      */
@@ -132,6 +142,7 @@ public class ConsumptionControlPanel extends VerticalLayout {
             return;
         }
         orchestrator.startRandomMode();
+        if (metricsPanel != null) metricsPanel.startTimer();
         refreshStatus();
     }
 
@@ -140,6 +151,7 @@ public class ConsumptionControlPanel extends VerticalLayout {
             return;
         }
         orchestrator.stopRandomMode();
+        if (metricsPanel != null) metricsPanel.stopTimer();
         refreshStatus();
     }
 
@@ -159,6 +171,7 @@ public class ConsumptionControlPanel extends VerticalLayout {
             return;
         }
         orchestrator.startControlledMode(selectedVehicles);
+        if (metricsPanel != null) metricsPanel.startTimer();
         refreshStatus();
     }
 
@@ -167,6 +180,7 @@ public class ConsumptionControlPanel extends VerticalLayout {
             return;
         }
         orchestrator.stopAllControlledSessions();
+        if (metricsPanel != null) metricsPanel.stopTimer();
         refreshStatus();
     }
 

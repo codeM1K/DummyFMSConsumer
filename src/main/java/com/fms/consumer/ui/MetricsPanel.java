@@ -13,6 +13,8 @@ import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -41,6 +43,10 @@ public class MetricsPanel extends VerticalLayout {
     private final Span updatesPerSecondLabel;
     private final Span activeVehiclesLabel;
     private final Span activeRealmsLabel;
+    private final Span elapsedTimeLabel;
+
+    // Timer state
+    private volatile Instant testStartTime = null;
 
     // Polling status labels
     private final Span pollIntervalLabel;
@@ -72,9 +78,10 @@ public class MetricsPanel extends VerticalLayout {
         updatesPerSecondLabel = createMetricLabel("Updates/sec", "0.0");
         activeVehiclesLabel = createMetricLabel("Active Vehicles", "0");
         activeRealmsLabel = createMetricLabel("Active Realms", "0");
+        elapsedTimeLabel = createMetricLabel("Elapsed", "--:--");
 
         HorizontalLayout mainMetrics = new HorizontalLayout(
-                activeConnectionsLabel, updatesPerSecondLabel, activeVehiclesLabel, activeRealmsLabel);
+                activeConnectionsLabel, updatesPerSecondLabel, activeVehiclesLabel, activeRealmsLabel, elapsedTimeLabel);
         mainMetrics.setSpacing(true);
         mainMetrics.setWidthFull();
 
@@ -135,6 +142,20 @@ public class MetricsPanel extends VerticalLayout {
      */
     public void setLocationPollingService(LocationPollingService locationPollingService) {
         this.locationPollingService = locationPollingService;
+    }
+
+    /**
+     * Starts the elapsed time counter from the current instant.
+     */
+    public void startTimer() {
+        this.testStartTime = Instant.now();
+    }
+
+    /**
+     * Stops the elapsed time counter and resets the display to --:--.
+     */
+    public void stopTimer() {
+        this.testStartTime = null;
     }
 
     /**
@@ -220,6 +241,21 @@ public class MetricsPanel extends VerticalLayout {
                 activeVehiclesLabel.setText("Active Vehicles: " + metrics.getActiveVehicles());
                 activeRealmsLabel.setText("Active Realms: " + metrics.getActiveRealms());
 
+                // Update elapsed time
+                if (testStartTime != null) {
+                    Duration elapsed = Duration.between(testStartTime, Instant.now());
+                    long hours = elapsed.toHours();
+                    long minutes = elapsed.toMinutesPart();
+                    long seconds = elapsed.toSecondsPart();
+                    if (hours > 0) {
+                        elapsedTimeLabel.setText(String.format("Elapsed: %d:%02d:%02d", hours, minutes, seconds));
+                    } else {
+                        elapsedTimeLabel.setText(String.format("Elapsed: %02d:%02d", minutes, seconds));
+                    }
+                } else {
+                    elapsedTimeLabel.setText("Elapsed: --:--");
+                }
+
                 // Update polling status
                 if (locationPollingService != null) {
                     pollIntervalLabel.setText("Poll Interval: " + locationPollingService.getCurrentPollIntervalSeconds() + "s");
@@ -304,5 +340,9 @@ public class MetricsPanel extends VerticalLayout {
 
     H4 getPerClientHeader() {
         return perClientHeader;
+    }
+
+    Span getElapsedTimeLabel() {
+        return elapsedTimeLabel;
     }
 }
